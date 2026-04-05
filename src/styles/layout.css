@@ -48,15 +48,15 @@
     display: grid;
     grid-template-columns: var(--panel-width) minmax(0, 1fr);
     gap: 10px;
-    align-items: start;
+    align-items: stretch;
 }
 
 /* ─── COMMAND PANEL (sidebar) ─── */
 .command-panel {
-    position: sticky;
-    top: calc(max(6px, env(safe-area-inset-top)) + 64px);
+    position: relative;
     z-index: 1200;
-    max-height: calc(100dvh - 100px);
+    height: 100%;
+    min-height: 0;
     overflow: auto;
     padding: 8px;
     border: 1px solid var(--border);
@@ -74,11 +74,13 @@
 .battle-stage {
     position: relative;
     min-height: 0;
+    height: 100%;
 }
 
 .map-stage {
     position: relative;
-    min-height: clamp(420px, 68vh, 800px);
+    height: 100%;
+    min-height: 0;
     border-radius: var(--radius-lg);
     overflow: hidden;
     border: 1px solid var(--border);
