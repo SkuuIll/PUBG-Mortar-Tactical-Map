@@ -14,7 +14,7 @@ export async function exportMapSnapshot({ element, fileNamePrefix = 'pubg-mortar
     onStatusChange('Preparando exportación...', 'info');
 
     const canvas = await window.html2canvas(element, {
-        backgroundColor: '#0b1018',
+        backgroundColor: '#09090b',
         scale: Math.min(window.devicePixelRatio || 1, 2),
         useCORS: true,
         logging: false

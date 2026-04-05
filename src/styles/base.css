@@ -1,4 +1,6 @@
-* {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -11,13 +13,12 @@ body {
 
 body {
     font-family: var(--font-body);
+    font-size: 14px;
     color: var(--text-primary);
-    background:
-        radial-gradient(circle at top left, var(--page-glow-primary), transparent 24%),
-        radial-gradient(circle at top right, var(--page-glow-secondary), transparent 22%),
-        var(--bg-page);
-    background-color: var(--bg-page);
+    background: var(--bg-page);
     overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 button,
@@ -25,11 +26,6 @@ input,
 select {
     font: inherit;
     color: inherit;
-}
-
-button,
-select,
-input {
     border: none;
     outline: none;
 }
@@ -44,6 +40,7 @@ button {
 
 a {
     color: inherit;
+    text-decoration: none;
 }
 
 img {
@@ -53,7 +50,7 @@ img {
 
 kbd,
 code {
-    font-family: Consolas, 'Courier New', monospace;
+    font-family: var(--font-mono);
 }
 
 .sr-only {

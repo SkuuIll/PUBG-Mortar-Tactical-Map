@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'pubg-mortar-shell-v2';
-const RUNTIME_CACHE = 'pubg-mortar-runtime-v2';
+const APP_SHELL_CACHE = 'pubg-mortar-shell-v3';
+const RUNTIME_CACHE = 'pubg-mortar-runtime-v3';
 
 
 const APP_SHELL_ASSETS = [
@@ -103,11 +103,8 @@ self.addEventListener('fetch', (event) => {
                 return caches.match('./index.html');
             }
 
-            if (request.destination === 'image' && cachedResponse) {
-                return cachedResponse;
-            }
-
             throw error;
         }
     })());
 });
+

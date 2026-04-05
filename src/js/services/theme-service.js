@@ -5,8 +5,8 @@
 const THEME_STORAGE_KEY = 'pubg-mortar:theme';
 
 const THEME_BROWSER_COLORS = Object.freeze({
-    dark: '#070b11',
-    light: '#e9eef6'
+    dark: '#09090b',
+    light: '#fafafa'
 });
 
 export const THEMES = Object.freeze({
