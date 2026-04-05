@@ -838,3 +838,583 @@ kbd {
         border-radius: 20px;
     }
 }
+
+.brand {
+    gap: 10px;
+}
+
+.brand__icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    box-shadow: none;
+    font-size: 1rem;
+}
+
+.brand h1 {
+    font-size: clamp(1rem, 1.1vw, 1.28rem);
+}
+
+.brand__subtitle {
+    display: none;
+}
+
+.eyebrow {
+    margin-bottom: 2px;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+}
+
+.command-card .eyebrow,
+.draw-panel .eyebrow,
+.hud-panel .eyebrow {
+    display: none;
+}
+
+.topbar__overview {
+    gap: 6px;
+}
+
+.topbar__pill {
+    min-width: auto;
+    padding: 6px 8px;
+    border-radius: 12px;
+    box-shadow: none;
+}
+
+.topbar__pill-label {
+    margin-bottom: 0;
+    font-size: 0.58rem;
+}
+
+.topbar__pill strong {
+    font-size: 0.82rem;
+}
+
+.topbar__actions {
+    gap: 8px;
+}
+
+.topbar__hud-button {
+    min-width: 68px;
+}
+
+.command-card {
+    gap: 10px;
+    padding: 12px;
+    border-radius: 16px;
+}
+
+.command-card__header,
+.draw-panel__header,
+.modal__header,
+.hud-panel__header {
+    gap: 8px;
+}
+
+.command-card__header h2,
+.draw-panel__header h2,
+.modal__header h2,
+.panel-section h3,
+.hud-panel__title {
+    font-size: 0.98rem;
+    line-height: 1.1;
+}
+
+.command-card__badge,
+.command-copy,
+.draw-panel__description,
+.panel-note,
+.shortcut-pills {
+    display: none !important;
+}
+
+.map-spotlight {
+    grid-template-columns: 64px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 14px;
+}
+
+.map-spotlight__media {
+    min-height: 56px;
+    height: 56px;
+    border-radius: 10px;
+}
+
+.map-spotlight__content {
+    gap: 2px;
+}
+
+.map-spotlight__kicker,
+.workflow-card__eyebrow {
+    font-size: 0.62rem;
+}
+
+.map-spotlight__content strong,
+.workflow-card__step {
+    font-size: 0.88rem;
+}
+
+.map-spotlight__content span:last-child,
+.workflow-card__hint,
+.helper-text,
+.modal__note,
+.shortcut-list,
+.modal__body ol,
+.modal__body ul {
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.control-group {
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 14px;
+}
+
+.control-group__label {
+    font-size: 0.64rem;
+}
+
+.control-group__value {
+    font-size: 0.82rem;
+}
+
+.mode-switch,
+.theme-meta {
+    gap: 8px;
+}
+
+.mode-switch__label {
+    font-size: 0.78rem;
+}
+
+.theme-icon {
+    font-size: 0.9rem;
+}
+
+.switch {
+    width: 42px;
+    height: 24px;
+}
+
+.switch__slider::before {
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+}
+
+.switch input:checked + .switch__slider::before {
+    transform: translateX(18px);
+}
+
+select,
+.text-tool input {
+    min-height: 36px;
+    padding: 0 10px;
+    border-radius: 12px;
+    font-size: 0.84rem;
+}
+
+.btn {
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 12px;
+    font-size: 0.84rem;
+    box-shadow: none;
+}
+
+.btn--small {
+    min-height: 34px;
+    padding-inline: 10px;
+}
+
+.icon-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+}
+
+.action-grid {
+    gap: 6px;
+}
+
+.workflow-card {
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 14px;
+}
+
+.status-bar {
+    top: 8px;
+    left: 8px;
+    max-width: min(420px, calc(100% - 16px));
+    padding: 7px 10px;
+    font-size: 0.8rem;
+}
+
+.panel-section {
+    gap: 8px;
+}
+
+.tool-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.tool-btn {
+    min-height: 36px;
+    padding: 0 8px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+}
+
+.color-grid {
+    gap: 6px;
+}
+
+.color-btn {
+    border-radius: 12px;
+}
+
+.text-tool {
+    gap: 6px;
+}
+
+.draw-panel__actions .btn {
+    width: 100%;
+}
+
+.hud-panel__title {
+    font-size: 0.88rem;
+}
+
+.hud-panel__grid,
+.hud-panel__primary,
+.hud-panel__secondary {
+    gap: 8px;
+}
+
+.hud-item {
+    padding: 8px 10px;
+    border-radius: 14px;
+}
+
+.hud-item__label {
+    margin-bottom: 4px;
+    font-size: 0.62rem;
+}
+
+.hud-item__value {
+    font-size: clamp(0.88rem, 1vw, 1.02rem);
+}
+
+.hud-item__value--status,
+.hud-item__value--small {
+    font-size: 0.84rem;
+}
+
+.mobile-toolbar {
+    gap: 6px;
+    padding: 6px;
+    border-radius: 16px;
+}
+
+.mobile-toolbar__action {
+    min-height: 38px;
+    padding: 0 6px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+}
+
+.modal {
+    padding: 12px;
+}
+
+.modal__dialog {
+    width: min(680px, 100%);
+    padding: 16px;
+}
+
+.modal__body {
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.modal__body section {
+    gap: 8px;
+}
+
+.modal__body ol,
+.modal__body ul {
+    margin-left: 16px;
+    line-height: 1.5;
+}
+
+.modal__note {
+    padding: 10px 12px;
+    border-radius: 12px;
+}
+
+kbd {
+    padding: 2px 6px;
+    font-size: 0.76rem;
+}
+
+@media (max-width: 1180px) {
+    .command-panel__inner {
+        grid-template-columns: 1fr;
+    }
+
+    .map-spotlight {
+        grid-template-columns: 52px minmax(0, 1fr);
+    }
+
+    .map-spotlight__media {
+        min-height: 48px;
+        height: 48px;
+    }
+}
+
+@media (max-width: 900px) {
+    .command-card {
+        padding: 10px;
+    }
+
+    .topbar__overview {
+        gap: 6px;
+        padding-bottom: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .brand {
+        align-items: center;
+        gap: 8px;
+    }
+
+    .brand__icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        font-size: 0.88rem;
+    }
+
+    .brand h1 {
+        font-size: 0.96rem;
+    }
+
+    .topbar__pill {
+        padding: 5px 7px;
+    }
+
+    .action-grid--dual,
+    .hud-panel__primary,
+    .hud-panel__secondary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tool-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .color-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .text-tool {
+        grid-template-columns: 1fr;
+    }
+
+    .status-bar {
+        position: static;
+        margin: 8px;
+        max-width: none;
+        border-radius: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .brand {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .topbar__actions {
+        width: auto;
+    }
+
+    .topbar__hud-button {
+        flex: 0 0 auto;
+    }
+
+    .action-grid--dual,
+    .hud-panel__primary,
+    .hud-panel__secondary {
+        grid-template-columns: 1fr;
+    }
+
+    .mobile-toolbar {
+        gap: 4px;
+        padding: 4px;
+    }
+
+    .mobile-toolbar__action {
+        min-height: 34px;
+        font-size: 0.68rem;
+    }
+}
+
+.brand .eyebrow {
+    display: none;
+}
+
+.brand__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+}
+
+.topbar__overview {
+    gap: 4px;
+}
+
+.topbar__pill {
+    padding: 4px 6px;
+    border-radius: 10px;
+    background: transparent;
+}
+
+.topbar__pill-label {
+    font-size: 0.54rem;
+    letter-spacing: 0.08em;
+}
+
+.topbar__pill strong {
+    font-size: 0.76rem;
+}
+
+.topbar__hud-button {
+    min-width: 60px;
+}
+
+.command-card {
+    gap: 8px;
+    padding: 10px;
+    border-radius: 14px;
+    background: var(--bg-card);
+}
+
+.command-card__header,
+.draw-panel__header,
+.modal__header,
+.hud-panel__header {
+    align-items: center;
+}
+
+.command-card__header h2,
+.draw-panel__header h2,
+.modal__header h2,
+.panel-section h3,
+.hud-panel__title {
+    font-size: 0.9rem;
+}
+
+.map-spotlight {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px;
+    border-radius: 12px;
+    background: var(--bg-soft);
+}
+
+.map-spotlight__media {
+    min-height: 44px;
+    height: 44px;
+    border-radius: 8px;
+}
+
+.map-spotlight__content strong,
+.workflow-card__step {
+    font-size: 0.84rem;
+}
+
+.workflow-card__eyebrow {
+    display: none;
+}
+
+.control-group {
+    padding: 8px 10px;
+    border-radius: 12px;
+}
+
+.btn {
+    min-height: 34px;
+    padding: 0 10px;
+    border-radius: 10px;
+}
+
+.icon-btn {
+    width: 32px;
+    height: 32px;
+}
+
+.workflow-card {
+    gap: 4px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: var(--bg-soft);
+}
+
+.workflow-card__hint {
+    font-size: 0.74rem;
+}
+
+.tool-btn {
+    min-height: 34px;
+    font-size: 0.76rem;
+}
+
+.hud-panel__grid,
+.hud-panel__primary,
+.hud-panel__secondary {
+    gap: 6px;
+}
+
+.hud-item {
+    padding: 7px 8px;
+    border-radius: 12px;
+    background: var(--bg-soft);
+}
+
+.hud-panel__secondary .hud-item {
+    padding: 6px 8px;
+    background: transparent;
+}
+
+.hud-item__value {
+    font-size: clamp(0.82rem, 0.9vw, 0.96rem);
+}
+
+.mobile-toolbar {
+    padding: 4px;
+    border-radius: 14px;
+}
+
+.mobile-toolbar__action {
+    min-height: 34px;
+    border-radius: 10px;
+}
+
+.modal__dialog {
+    width: min(620px, 100%);
+    padding: 14px;
+}
+
+

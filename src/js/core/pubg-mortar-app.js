@@ -17,7 +17,7 @@ import { THEMES, applyTheme, getSavedTheme, toggleTheme } from '../services/them
 import { loadVisitorCount } from '../services/visitor-counter-service.js';
 
 const APP_TITLE = 'PUBG Mortar Tactical Map';
-const DEFAULT_STATUS = 'Listo para una nueva medición.';
+const DEFAULT_STATUS = 'Marca dos puntos sobre el mapa.';
 const HUD_COLLAPSED_STORAGE_KEY = 'pubg-mortar-hud-collapsed';
 
 function getInitialAppState(search) {
@@ -94,7 +94,7 @@ export class PubgMortarApp {
         this.syncUrlState();
         this.updateHud();
         await loadVisitorCount(this.elements.visitorCount);
-        this.showStatus('Aplicación cargada con assets locales, compartir rápido y soporte PWA.', 'success');
+        this.showStatus('App lista con medición, dibujo y soporte PWA.', 'success');
     }
 
 
@@ -436,12 +436,13 @@ export class PubgMortarApp {
     }
 
     syncDrawingTriggerState(isOpen) {
-        this.elements.toggleDrawPanelButton.textContent = isOpen ? 'Cerrar herramientas' : 'Abrir herramientas';
+        this.elements.toggleDrawPanelButton.textContent = isOpen ? 'Cerrar dibujo' : 'Abrir dibujo';
         this.elements.toggleDrawPanelButton.setAttribute('aria-label', isOpen ? 'Cerrar panel de dibujo' : 'Abrir panel de dibujo');
         this.elements.toggleDrawPanelButton.setAttribute('aria-pressed', String(isOpen));
         this.elements.toggleDrawPanelButton.classList.toggle('is-active', isOpen);
         this.syncMobileToolbarState();
     }
+
 
 
     syncContextSummary() {
@@ -452,8 +453,9 @@ export class PubgMortarApp {
         this.elements.activeModeLabel.textContent = this.isMortarMode ? 'Mortero' : 'Distancia';
         this.elements.activeThemeLabel.textContent = this.currentTheme === THEMES.light ? 'Claro' : 'Oscuro';
         this.elements.mapPreviewName.textContent = mapConfig.label;
-        this.elements.mapPreviewMeta.textContent = `${mapConfig.sizeLabel} • ${mapConfig.description}`;
+        this.elements.mapPreviewMeta.textContent = mapConfig.sizeLabel;
         this.elements.mapPreviewCard.style.setProperty('--map-preview', `url("${mapConfig.assetPath}")`);
+
         this.elements.workflowStep.textContent = workflow.step;
         this.elements.workflowHint.textContent = workflow.hint;
     }
@@ -462,43 +464,44 @@ export class PubgMortarApp {
         if (this.isMortarMode) {
             if (this.measurementPoints.length === 0) {
                 return {
-                    step: 'Marca la posición del mortero',
-                    hint: 'Coloca primero el mortero y luego el objetivo para calcular el tiro.'
+                    step: 'Marca el mortero',
+                    hint: 'Luego marca el objetivo.'
                 };
             }
 
             if (this.measurementPoints.length === 1) {
                 return {
                     step: 'Marca el objetivo',
-                    hint: 'El rango útil aparece sobre el mapa para validar el disparo.'
+                    hint: 'Se calcula ángulo y alcance.'
                 };
             }
 
             return {
                 step: 'Solución lista',
-                hint: 'Revisa el HUD y reinicia o limpia para calcular otro disparo.'
+                hint: 'Reinicia o limpia para otro tiro.'
             };
         }
 
         if (this.measurementPoints.length === 0) {
             return {
-                step: 'Marca el punto inicial',
-                hint: 'Haz clic sobre el mapa para iniciar una nueva medición.'
+                step: 'Marca inicio',
+                hint: 'Luego marca el segundo punto.'
             };
         }
 
         if (this.measurementPoints.length === 1) {
             return {
-                step: 'Marca el punto final',
-                hint: 'El segundo clic calculará la distancia exacta entre ambos puntos.'
+                step: 'Marca final',
+                hint: 'La distancia se calcula al instante.'
             };
         }
 
         return {
             step: 'Medición lista',
-            hint: 'Puedes compartir, exportar o limpiar la medición desde el panel táctico.'
+            hint: 'Comparte, exporta o limpia.'
         };
     }
+
 
     restoreInitialMap() {
 
