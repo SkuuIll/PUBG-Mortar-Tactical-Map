@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Calculadora táctica de morteros para PUBG con medición precisa, dibujo táctico, compartir y soporte instalable como PWA.">
+    <meta name="theme-color" content="#070b11">
+    <meta name="application-name" content="PUBG Mortar Tactical Map">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Morteros PUBG">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_ES">
+    <meta property="og:title" content="PUBG Mortar Tactical Map">
+    <meta property="og:description" content="Planifica disparos de mortero, mide distancias, dibuja tácticas y comparte tu configuración desde cualquier dispositivo.">
+    <meta property="og:image" content="./assets/branding/social-banner.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PUBG Mortar Tactical Map">
+    <meta name="twitter:description" content="Calculadora táctica de morteros para PUBG con medición, dibujo, compartir y modo instalable.">
+    <meta name="twitter:image" content="./assets/branding/social-banner.png">
+    <title>PUBG Mortar Tactical Map</title>
+    <link rel="canonical" href="./">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/branding/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./assets/branding/favicon-16.png">
+    <link rel="apple-touch-icon" href="./assets/branding/apple-touch-icon.png">
+    <link rel="stylesheet" href="./vendor/leaflet/leaflet.css">
+    <link rel="stylesheet" href="./src/styles/main.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar" id="topbar">
+            <div class="topbar__main">
+                <div class="brand">
+                    <div class="brand__icon" aria-hidden="true">🎯</div>
+                    <div>
+                        <p class="eyebrow">Morteros PUBG / PUBG Mortars</p>
+                        <h1>PUBG Mortar Tactical Map</h1>
+                        <p class="brand__subtitle">Medición precisa, dibujo táctico, compartir rápido e instalación móvil en una sola interfaz.</p>
+                    </div>
+                </div>
+
+                <div class="topbar__quick-actions">
+                    <button class="icon-btn topbar__toggle" id="toggleTopbarButton" type="button" aria-label="Mostrar controles" aria-controls="topbarControls" aria-expanded="true">☰</button>
+                    <button class="icon-btn topbar__toggle" id="toggleHudButton" type="button" aria-label="Ocultar HUD" aria-controls="hudPanelGrid" aria-expanded="true">▣</button>
+                </div>
+            </div>
+
+            <div class="topbar__controls" id="topbarControls">
+                <div class="control-group control-group--compact">
+                    <span class="control-group__label">Modo</span>
+                    <label class="switch" for="interactionModeToggle">
+                        <input type="checkbox" id="interactionModeToggle" aria-label="Activar modo mortero">
+                        <span class="switch__slider"></span>
+                    </label>
+                    <span class="control-group__value" id="modeLabel">Distancia</span>
+                </div>
+
+                <div class="control-group control-group--compact">
+                    <span class="control-group__label">Tema</span>
+                    <label class="switch" for="themeToggle">
+                        <input type="checkbox" id="themeToggle" aria-label="Cambiar tema">
+                        <span class="switch__slider"></span>
+                    </label>
+                    <span class="control-group__value" id="themeLabel">Oscuro</span>
+                    <span class="theme-icon" id="themeIcon" aria-hidden="true">🌙</span>
+                </div>
+
+                <div class="control-group control-group--map">
+                    <label class="control-group__label" for="mapSelect">Mapa</label>
+                    <select id="mapSelect" aria-label="Seleccionar mapa"></select>
+                </div>
+
+                <div class="control-actions">
+                    <button class="btn btn--accent" id="toggleDrawPanelButton" type="button" aria-controls="drawPanel" aria-pressed="false">Dibujar</button>
+                    <button class="btn btn--ghost" id="shareAppButton" type="button">Compartir</button>
+                    <button class="btn btn--secondary" id="exportMapButton" type="button">Exportar</button>
+                    <button class="btn btn--secondary" id="installAppButton" type="button" hidden>Instalar</button>
+                    <button class="btn btn--neutral" id="resetMeasurementButton" type="button">Reiniciar</button>
+                    <button class="btn btn--neutral" id="clearMeasurementButton" type="button">Limpiar</button>
+                    <button class="btn btn--ghost" id="showHelpButton" type="button">Ayuda</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="workspace">
+            <aside class="draw-panel" id="drawPanel" aria-hidden="true">
+                <div class="draw-panel__header">
+                    <div>
+                        <p class="eyebrow">Herramientas</p>
+                        <h2>Dibujo táctico</h2>
+                    </div>
+                    <button class="icon-btn" id="closeDrawPanelButton" type="button" aria-label="Cerrar panel de dibujo">✕</button>
+                </div>
+
+                <p class="draw-panel__description">
+                    Usa trazos, texto y borrador sin mezclar la lógica del mapa con la interfaz.
+                </p>
+
+                <section class="panel-section">
+                    <h3>Herramientas</h3>
+                    <div class="tool-grid" id="drawToolButtons">
+                        <button class="tool-btn is-active" data-tool="freehand" type="button">Trazado</button>
+                        <button class="tool-btn" data-tool="line" type="button">Línea</button>
+                        <button class="tool-btn" data-tool="circle" type="button">Círculo</button>
+                        <button class="tool-btn" data-tool="rectangle" type="button">Rectángulo</button>
+                        <button class="tool-btn" data-tool="text" type="button">Texto</button>
+                        <button class="tool-btn" data-tool="eraser" type="button">Borrador</button>
+                    </div>
+                </section>
+
+                <section class="panel-section">
+                    <h3>Colores</h3>
+                    <div class="color-grid" id="colorButtons">
+                        <button class="color-btn is-active" data-color="#ff4d4f" style="--color:#ff4d4f" type="button" aria-label="Rojo"></button>
+                        <button class="color-btn" data-color="#00c853" style="--color:#00c853" type="button" aria-label="Verde"></button>
+                        <button class="color-btn" data-color="#4dabf7" style="--color:#4dabf7" type="button" aria-label="Azul"></button>
+                        <button class="color-btn" data-color="#ffd43b" style="--color:#ffd43b" type="button" aria-label="Amarillo"></button>
+                        <button class="color-btn" data-color="#ffffff" style="--color:#ffffff" type="button" aria-label="Blanco"></button>
+                        <button class="color-btn" data-color="#ff8fab" style="--color:#ff8fab" type="button" aria-label="Rosa"></button>
+                    </div>
+                </section>
+
+                <section class="panel-section panel-section--text" id="textToolSection" hidden>
+                    <h3>Texto</h3>
+                    <label class="sr-only" for="textInput">Texto táctico</label>
+                    <div class="text-tool">
+                        <input id="textInput" type="text" maxlength="40" placeholder="Haz clic en el mapa para colocar el texto">
+                        <button class="btn btn--accent btn--small" id="addTextButton" type="button">Añadir</button>
+                    </div>
+                    <p class="helper-text">Sugerencia: escribe primero y luego haz clic en el mapa.</p>
+                </section>
+
+                <div class="draw-panel__actions">
+                    <button class="btn btn--danger" id="clearDrawingsButton" type="button">Eliminar dibujos</button>
+                </div>
+            </aside>
+
+            <section class="map-stage" aria-label="Área del mapa táctico">
+                <div class="status-bar status-bar--info" id="statusMessage" aria-live="polite">
+                    Proyecto reorganizado correctamente. Listo para usar.
+                </div>
+                <div id="map" class="map-canvas" aria-label="Mapa interactivo de PUBG"></div>
+            </section>
+        </main>
+
+        <footer class="hud-panel" id="hudPanel">
+            <div class="hud-panel__header">
+                <div>
+                    <p class="eyebrow">HUD táctico</p>
+                    <h2 class="hud-panel__title">Datos de disparo</h2>
+                </div>
+                <button class="icon-btn hud-panel__toggle" id="collapseHudButton" type="button" aria-label="Ocultar HUD" aria-controls="hudPanelGrid" aria-expanded="true">▾</button>
+            </div>
+
+            <div class="hud-panel__grid" id="hudPanelGrid">
+                <div class="hud-item">
+                    <span class="hud-item__label">Distancia</span>
+                    <span class="hud-item__value" id="distanceValue">0000 m</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-item__label">Ángulo</span>
+                    <span class="hud-item__value" id="angleValue">--°</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-item__label">Tiempo de vuelo</span>
+                    <span class="hud-item__value" id="flightTimeValue">-- s</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-item__label">Radio de impacto</span>
+                    <span class="hud-item__value" id="shellRadiusValue">25 m</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-item__label">Puntos</span>
+                    <span class="hud-item__value" id="pointsValue">0/2</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-item__label">Estado</span>
+                    <span class="hud-item__value hud-item__value--status" id="rangeStatusValue">Esperando</span>
+                </div>
+                <div class="hud-item hud-item--visits">
+                    <span class="hud-item__label">Visitas</span>
+                    <span class="hud-item__value hud-item__value--small" id="visitorCount">--</span>
+                </div>
+            </div>
+        </footer>
+
+        <nav class="mobile-toolbar" aria-label="Accesos rápidos">
+            <button class="mobile-toolbar__action" id="mobileMenuButton" type="button" aria-label="Abrir controles" aria-controls="topbarControls" aria-expanded="false">Menú</button>
+            <button class="mobile-toolbar__action" id="mobileDrawButton" type="button" aria-label="Abrir panel de dibujo" aria-controls="drawPanel" aria-pressed="false">Dibujar</button>
+            <button class="mobile-toolbar__action" id="mobileHudButton" type="button" aria-label="Ocultar HUD" aria-controls="hudPanelGrid" aria-expanded="true">HUD</button>
+            <button class="mobile-toolbar__action" id="mobileShareButton" type="button" aria-label="Compartir configuración">Compartir</button>
+            <button class="mobile-toolbar__action" id="mobileHelpButton" type="button" aria-label="Abrir ayuda">Ayuda</button>
+        </nav>
+    </div>
+
+    <div class="modal" id="helpModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+        <div class="modal__dialog">
+            <div class="modal__header">
+                <div>
+                    <p class="eyebrow">Guía rápida</p>
+                    <h2 id="helpModalTitle">Cómo usar la aplicación</h2>
+                </div>
+                <button class="icon-btn" id="closeHelpButton" type="button" aria-label="Cerrar ayuda">✕</button>
+            </div>
+
+            <div class="modal__body">
+                <section>
+                    <h3>Modo distancia</h3>
+                    <ol>
+                        <li>Haz clic en el mapa para fijar el punto inicial.</li>
+                        <li>Haz clic de nuevo para fijar el objetivo.</li>
+                        <li>La distancia se calcula automáticamente.</li>
+                    </ol>
+                </section>
+
+                <section>
+                    <h3>Modo mortero</h3>
+                    <ol>
+                        <li>Activa el interruptor de modo mortero.</li>
+                        <li>Coloca primero la posición del mortero.</li>
+                        <li>Después coloca el objetivo.</li>
+                        <li>El HUD mostrará distancia, ángulo, tiempo y estado del disparo.</li>
+                    </ol>
+                </section>
+
+                <section>
+                    <h3>Compartir e instalar</h3>
+                    <ol>
+                        <li>Usa <strong>Compartir</strong> para enviar un enlace con mapa, tema y modo activos.</li>
+                        <li>Usa <strong>Instalar</strong> cuando el navegador permita añadir la app al dispositivo.</li>
+                        <li>En iPhone o iPad, abre Safari y usa <strong>Compartir → Añadir a pantalla de inicio</strong>.</li>
+                    </ol>
+                </section>
+
+                <section>
+                    <h3>Accesos móviles</h3>
+                    <ol>
+                        <li>Usa la barra flotante inferior para abrir controles, dibujo, HUD, compartir o ayuda.</li>
+                        <li>Contrae el HUD cuando necesites más espacio para el mapa.</li>
+                        <li>El encabezado permanece fijo para cambiar mapa, modo y tema sin perder contexto.</li>
+                    </ol>
+                </section>
+
+                <section>
+                    <h3>Herramientas de dibujo</h3>
+                    <ol>
+                        <li>Abre el panel <strong>Dibujar</strong>.</li>
+                        <li>Selecciona una herramienta y un color.</li>
+                        <li>Para texto, escribe el contenido y haz clic sobre el mapa.</li>
+                        <li>Para borrar, elige <strong>Borrador</strong> y haz clic sobre un dibujo.</li>
+                    </ol>
+                </section>
+
+                <section>
+                    <h3>Atajos</h3>
+                    <ul class="shortcut-list">
+                        <li><kbd>R</kbd> reinicia medición y encuadre.</li>
+                        <li><kbd>C</kbd> limpia la medición actual.</li>
+                        <li><kbd>D</kbd> abre o cierra el panel de dibujo.</li>
+                        <li><kbd>H</kbd> abre la ayuda.</li>
+                        <li><kbd>M</kbd> alterna el modo mortero.</li>
+                        <li><kbd>S</kbd> comparte la app.</li>
+                        <li><kbd>E</kbd> exporta la vista actual.</li>
+                        <li><kbd>Esc</kbd> cierra paneles.</li>
+                    </ul>
+                </section>
+
+                <div class="modal__note">
+                    La documentación completa está disponible en <code>README.es.md</code> y <code>README.en.md</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./vendor/leaflet/leaflet.js"></script>
+    <script src="./vendor/html2canvas/html2canvas.min.js"></script>
+    <script type="module" src="./src/js/main.js"></script>
+</body>
+</html>
