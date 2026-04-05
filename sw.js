@@ -1,5 +1,6 @@
-const APP_SHELL_CACHE = 'pubg-mortar-shell-v1';
-const RUNTIME_CACHE = 'pubg-mortar-runtime-v1';
+const APP_SHELL_CACHE = 'pubg-mortar-shell-v2';
+const RUNTIME_CACHE = 'pubg-mortar-runtime-v2';
+
 
 const APP_SHELL_ASSETS = [
     './',
@@ -31,8 +32,14 @@ const APP_SHELL_ASSETS = [
     './assets/branding/icon-512.png',
     './assets/branding/maskable-512.png',
     './assets/branding/social-banner.png',
-    './assets/maps/active/erangel-main.png'
+    './assets/maps/active/erangel-main.png',
+    './assets/maps/active/miramar-main.png',
+    './assets/maps/active/vikendi-main.png',
+    './assets/maps/active/taego-main.png',
+    './assets/maps/active/deston-main.png',
+    './assets/maps/active/rondo-main.png'
 ];
+
 
 self.addEventListener('install', (event) => {
     event.waitUntil(

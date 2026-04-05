@@ -63,7 +63,9 @@ export class PubgMortarApp {
         this.isCompactLayout = false;
         this.isHudCollapsed = false;
         this.isTopbarControlsOpen = true;
+        this.activePanelSection = 'map';
         this.map = null;
+
         this.mapLayer = null;
         this.currentMapId = DEFAULT_MAP_ID;
         this.isMortarMode = false;
@@ -103,6 +105,15 @@ export class PubgMortarApp {
             topbarControls: this.document.getElementById('topbarControls'),
             toggleTopbarButton: this.document.getElementById('toggleTopbarButton'),
             themeColorMeta: this.document.querySelector('meta[name="theme-color"]'),
+            activeMapLabel: this.document.getElementById('activeMapLabel'),
+            activeModeLabel: this.document.getElementById('activeModeLabel'),
+            activeThemeLabel: this.document.getElementById('activeThemeLabel'),
+            mapPreviewCard: this.document.getElementById('mapPreviewCard'),
+            mapPreviewName: this.document.getElementById('mapPreviewName'),
+            mapPreviewMeta: this.document.getElementById('mapPreviewMeta'),
+            workflowStep: this.document.getElementById('workflowStep'),
+            workflowHint: this.document.getElementById('workflowHint'),
+            panelSections: [...this.document.querySelectorAll('[data-panel-section]')],
             mapContainer: this.document.getElementById('map'),
             mapSelect: this.document.getElementById('mapSelect'),
             interactionModeToggle: this.document.getElementById('interactionModeToggle'),
@@ -146,6 +157,7 @@ export class PubgMortarApp {
             clearDrawingsButton: this.document.getElementById('clearDrawingsButton')
         };
     }
+
 
 
     createMap() {
@@ -196,6 +208,7 @@ export class PubgMortarApp {
 
             this.currentTheme = theme;
             this.syncUrlState();
+            this.syncContextSummary();
             this.showStatus(`Tema ${theme === THEMES.light ? 'claro' : 'oscuro'} activado.`, 'info');
         });
         this.elements.toggleTopbarButton.addEventListener('click', () => this.toggleTopbarControls());
@@ -206,11 +219,11 @@ export class PubgMortarApp {
         this.elements.resetMeasurementButton.addEventListener('click', () => this.resetMeasurement());
         this.elements.clearMeasurementButton.addEventListener('click', () => this.clearMeasurement({ includeFit: false }));
         this.elements.showHelpButton.addEventListener('click', () => this.toggleHelpModal(true));
-        this.elements.mobileMenuButton.addEventListener('click', () => this.toggleTopbarControls());
-        this.elements.mobileDrawButton.addEventListener('click', () => this.drawingManager?.togglePanel());
-        this.elements.mobileHudButton.addEventListener('click', () => this.toggleHudCollapsed());
-        this.elements.mobileShareButton.addEventListener('click', () => this.shareCurrentApp());
-        this.elements.mobileHelpButton.addEventListener('click', () => this.toggleHelpModal(true));
+        this.elements.mobileMenuButton.addEventListener('click', () => this.togglePanelSection('map'));
+        this.elements.mobileHudButton.addEventListener('click', () => this.togglePanelSection('fire'));
+        this.elements.mobileDrawButton.addEventListener('click', () => this.togglePanelSection('draw'));
+        this.elements.mobileShareButton.addEventListener('click', () => this.togglePanelSection('actions'));
+        this.elements.mobileHelpButton.addEventListener('click', () => this.togglePanelSection('more'));
         this.elements.closeHelpButton.addEventListener('click', () => this.toggleHelpModal(false));
         this.elements.helpModal.addEventListener('click', (event) => {
             if (event.target === this.elements.helpModal) {
@@ -222,6 +235,7 @@ export class PubgMortarApp {
         this.document.addEventListener('touchend', () => this.drawingManager?.handlePointerUp(), { passive: true });
         this.window.addEventListener('resize', this.handleViewportChange);
     }
+
 
     initializeDrawingManager() {
         this.drawingManager = new DrawingManager({
@@ -240,6 +254,10 @@ export class PubgMortarApp {
             getDistanceInMeters: (start, end) => this.calculateDistanceBetweenLatLngs(start, end),
             onStatusChange: (message, tone) => this.showStatus(message, tone),
             onPanelVisibilityChange: (isOpen) => {
+                if (isOpen && this.isCompactLayout) {
+                    this.setTopbarControlsOpen(false);
+                }
+
                 this.setMapInteractionsEnabled(!isOpen);
                 this.syncDrawingTriggerState(isOpen);
             }
@@ -258,7 +276,9 @@ export class PubgMortarApp {
             label: this.elements.themeLabel,
             themeColorMeta: this.elements.themeColorMeta
         });
+        this.syncContextSummary();
     }
+
 
     initializeInstallPrompt() {
         this.installPromptCleanup = setupInstallPrompt({
@@ -290,6 +310,8 @@ export class PubgMortarApp {
 
         if (compactLayoutChanged || !isCompactLayout) {
             this.setTopbarControlsOpen(!isCompactLayout);
+        } else {
+            this.syncPanelSectionState();
         }
 
         if (!this.hasExplicitHudPreference) {
@@ -298,25 +320,88 @@ export class PubgMortarApp {
         }
 
         this.syncHudUiState();
+        this.syncMobileToolbarState();
     }
 
     toggleTopbarControls() {
+        if (!this.isCompactLayout) {
+            return;
+        }
+
         this.setTopbarControlsOpen(!this.isTopbarControlsOpen);
+    }
+
+    togglePanelSection(sectionKey) {
+        const isSameSectionOpen = this.isCompactLayout
+            && this.isTopbarControlsOpen
+            && this.activePanelSection === sectionKey;
+
+        this.setActivePanelSection(sectionKey);
+
+        if (!this.isCompactLayout) {
+            return;
+        }
+
+        this.setTopbarControlsOpen(!isSameSectionOpen);
+    }
+
+
+    setActivePanelSection(sectionKey = 'map') {
+        const availableSections = new Set(this.elements.panelSections.map((section) => section.dataset.panelSection));
+        this.activePanelSection = availableSections.has(sectionKey) ? sectionKey : 'map';
+        this.syncPanelSectionState();
     }
 
     setTopbarControlsOpen(isOpen) {
         const shouldOpen = this.isCompactLayout ? isOpen : true;
 
+        if (shouldOpen && this.isCompactLayout && this.drawingManager?.isPanelOpen) {
+            this.drawingManager.togglePanel(false);
+        }
+
         this.isTopbarControlsOpen = shouldOpen;
         this.elements.topbar.classList.toggle('is-controls-open', this.isCompactLayout && shouldOpen);
         this.elements.topbarControls.hidden = this.isCompactLayout ? !shouldOpen : false;
+        this.elements.topbarControls.setAttribute('aria-hidden', String(this.isCompactLayout ? !shouldOpen : false));
         this.elements.toggleTopbarButton.textContent = shouldOpen ? '✕' : '☰';
-        this.elements.toggleTopbarButton.setAttribute('aria-label', shouldOpen ? 'Cerrar controles' : 'Mostrar controles');
+        this.elements.toggleTopbarButton.setAttribute('aria-label', shouldOpen ? 'Cerrar panel táctico' : 'Mostrar panel táctico');
         this.elements.toggleTopbarButton.setAttribute('aria-expanded', String(shouldOpen));
-        this.elements.mobileMenuButton.textContent = shouldOpen ? 'Cerrar' : 'Menú';
-        this.elements.mobileMenuButton.setAttribute('aria-label', shouldOpen ? 'Cerrar controles' : 'Abrir controles');
-        this.elements.mobileMenuButton.setAttribute('aria-expanded', String(shouldOpen));
-        this.elements.mobileMenuButton.classList.toggle('is-active', shouldOpen);
+        this.elements.toggleTopbarButton.classList.toggle('is-active', this.isCompactLayout && shouldOpen);
+        this.syncPanelSectionState();
+        this.syncMobileToolbarState();
+    }
+
+    syncPanelSectionState() {
+        this.elements.panelSections.forEach((section) => {
+            const shouldShow = !this.isCompactLayout || section.dataset.panelSection === this.activePanelSection;
+            section.hidden = !shouldShow;
+            section.classList.toggle('is-active', shouldShow && this.isCompactLayout && this.isTopbarControlsOpen);
+        });
+    }
+
+    syncMobileToolbarState() {
+        const activeSection = this.isCompactLayout && this.isTopbarControlsOpen ? this.activePanelSection : null;
+        const buttonStateMap = {
+            map: activeSection === 'map',
+            fire: activeSection === 'fire',
+            draw: this.drawingManager?.isPanelOpen || activeSection === 'draw',
+            actions: activeSection === 'actions',
+            more: activeSection === 'more'
+        };
+
+        const triggerMap = {
+            map: this.elements.mobileMenuButton,
+            fire: this.elements.mobileHudButton,
+            draw: this.elements.mobileDrawButton,
+            actions: this.elements.mobileShareButton,
+            more: this.elements.mobileHelpButton
+        };
+
+        Object.entries(triggerMap).forEach(([sectionKey, button]) => {
+            const isActive = Boolean(buttonStateMap[sectionKey]);
+            button.classList.toggle('is-active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+        });
     }
 
     toggleHudCollapsed() {
@@ -346,19 +431,77 @@ export class PubgMortarApp {
 
         this.elements.toggleHudButton.setAttribute('aria-label', buttonLabel);
         this.elements.toggleHudButton.setAttribute('aria-expanded', String(isExpanded));
+        this.elements.toggleHudButton.setAttribute('aria-pressed', String(isExpanded));
         this.elements.toggleHudButton.classList.toggle('is-active', isExpanded);
-
-        this.elements.mobileHudButton.setAttribute('aria-label', buttonLabel);
-        this.elements.mobileHudButton.setAttribute('aria-expanded', String(isExpanded));
-        this.elements.mobileHudButton.classList.toggle('is-active', isExpanded);
     }
 
     syncDrawingTriggerState(isOpen) {
-        this.elements.mobileDrawButton.setAttribute('aria-pressed', String(isOpen));
-        this.elements.mobileDrawButton.classList.toggle('is-active', isOpen);
+        this.elements.toggleDrawPanelButton.textContent = isOpen ? 'Cerrar herramientas' : 'Abrir herramientas';
+        this.elements.toggleDrawPanelButton.setAttribute('aria-label', isOpen ? 'Cerrar panel de dibujo' : 'Abrir panel de dibujo');
+        this.elements.toggleDrawPanelButton.setAttribute('aria-pressed', String(isOpen));
+        this.elements.toggleDrawPanelButton.classList.toggle('is-active', isOpen);
+        this.syncMobileToolbarState();
+    }
+
+
+    syncContextSummary() {
+        const mapConfig = getMapConfig(this.currentMapId);
+        const workflow = this.getWorkflowContent();
+
+        this.elements.activeMapLabel.textContent = mapConfig.label;
+        this.elements.activeModeLabel.textContent = this.isMortarMode ? 'Mortero' : 'Distancia';
+        this.elements.activeThemeLabel.textContent = this.currentTheme === THEMES.light ? 'Claro' : 'Oscuro';
+        this.elements.mapPreviewName.textContent = mapConfig.label;
+        this.elements.mapPreviewMeta.textContent = `${mapConfig.sizeLabel} • ${mapConfig.description}`;
+        this.elements.mapPreviewCard.style.setProperty('--map-preview', `url("${mapConfig.assetPath}")`);
+        this.elements.workflowStep.textContent = workflow.step;
+        this.elements.workflowHint.textContent = workflow.hint;
+    }
+
+    getWorkflowContent() {
+        if (this.isMortarMode) {
+            if (this.measurementPoints.length === 0) {
+                return {
+                    step: 'Marca la posición del mortero',
+                    hint: 'Coloca primero el mortero y luego el objetivo para calcular el tiro.'
+                };
+            }
+
+            if (this.measurementPoints.length === 1) {
+                return {
+                    step: 'Marca el objetivo',
+                    hint: 'El rango útil aparece sobre el mapa para validar el disparo.'
+                };
+            }
+
+            return {
+                step: 'Solución lista',
+                hint: 'Revisa el HUD y reinicia o limpia para calcular otro disparo.'
+            };
+        }
+
+        if (this.measurementPoints.length === 0) {
+            return {
+                step: 'Marca el punto inicial',
+                hint: 'Haz clic sobre el mapa para iniciar una nueva medición.'
+            };
+        }
+
+        if (this.measurementPoints.length === 1) {
+            return {
+                step: 'Marca el punto final',
+                hint: 'El segundo clic calculará la distancia exacta entre ambos puntos.'
+            };
+        }
+
+        return {
+            step: 'Medición lista',
+            hint: 'Puedes compartir, exportar o limpiar la medición desde el panel táctico.'
+        };
     }
 
     restoreInitialMap() {
+
         const savedMapId = localStorage.getItem(MAP_STORAGE_KEY);
         const initialMapId = this.initialState.mapId ?? (isValidMapId(savedMapId) ? savedMapId : DEFAULT_MAP_ID);
         this.loadMap(initialMapId, { silent: true });
@@ -603,7 +746,9 @@ export class PubgMortarApp {
         this.elements.shellRadiusValue.textContent = `${MORTAR_CONFIG.shellRadiusMeters} m`;
         this.elements.pointsValue.textContent = `${this.measurementPoints.length}/2`;
         this.elements.rangeStatusValue.textContent = rangeStatus;
+        this.syncContextSummary();
     }
+
 
     getShareUrl() {
         const shareUrl = new URL(this.window.location.href);
@@ -648,7 +793,7 @@ export class PubgMortarApp {
     }
 
     async exportCurrentView() {
-        const workspaceElement = this.document.querySelector('.workspace');
+        const workspaceElement = this.document.querySelector('.map-stage');
 
         try {
             await exportMapSnapshot({
@@ -660,6 +805,7 @@ export class PubgMortarApp {
             this.showStatus('No fue posible exportar la vista actual.', 'error');
         }
     }
+
 
     setMapInteractionsEnabled(isEnabled) {
         const methods = ['dragging', 'touchZoom', 'doubleClickZoom', 'scrollWheelZoom', 'boxZoom', 'keyboard'];
@@ -684,9 +830,14 @@ export class PubgMortarApp {
             ? forceState
             : !this.elements.helpModal.classList.contains('is-open');
 
+        if (shouldOpen && this.isCompactLayout) {
+            this.setTopbarControlsOpen(false);
+        }
+
         this.elements.helpModal.classList.toggle('is-open', shouldOpen);
         this.elements.helpModal.setAttribute('aria-hidden', String(!shouldOpen));
     }
+
 
     handleKeyboardShortcuts(event) {
         const tagName = event.target.tagName;
@@ -727,7 +878,9 @@ export class PubgMortarApp {
             case 'escape':
                 this.toggleHelpModal(false);
                 this.drawingManager.togglePanel(false);
+                this.setTopbarControlsOpen(false);
                 break;
+
             default:
                 break;
         }
