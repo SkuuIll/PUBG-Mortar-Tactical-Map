@@ -3,6 +3,7 @@
   "short_name": "Morteros PUBG",
   "description": "Calculadora táctica de morteros para PUBG con medición, dibujo, compartir y soporte instalable como PWA.",
   "lang": "es-ES",
+  "id": "./",
   "start_url": "./index.html?source=pwa",
   "scope": "./",
   "display": "standalone",

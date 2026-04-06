@@ -49,6 +49,15 @@
     color: var(--text-primary);
 }
 
+@media (pointer: coarse) {
+    .leaflet-control-zoom a {
+        width: 36px !important;
+        height: 36px !important;
+        line-height: 36px !important;
+        font-size: 16px !important;
+    }
+}
+
 /* ─── MARKERS ─── */
 .marker-icon-wrapper {
     background: transparent;

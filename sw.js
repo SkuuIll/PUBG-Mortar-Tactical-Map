@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'pubg-mortar-shell-v3';
-const RUNTIME_CACHE = 'pubg-mortar-runtime-v3';
+const APP_SHELL_CACHE = 'pubg-mortar-shell-v4';
+const RUNTIME_CACHE = 'pubg-mortar-runtime-v4';
 
 
 const APP_SHELL_ASSETS = [
@@ -8,7 +8,6 @@ const APP_SHELL_ASSETS = [
     './manifest.webmanifest',
     './vendor/leaflet/leaflet.css',
     './vendor/leaflet/leaflet.js',
-    './vendor/html2canvas/html2canvas.min.js',
     './src/styles/main.css',
     './src/styles/tokens.css',
     './src/styles/base.css',
@@ -32,12 +31,7 @@ const APP_SHELL_ASSETS = [
     './assets/branding/icon-512.png',
     './assets/branding/maskable-512.png',
     './assets/branding/social-banner.png',
-    './assets/maps/active/erangel-main.png',
-    './assets/maps/active/miramar-main.png',
-    './assets/maps/active/vikendi-main.png',
-    './assets/maps/active/taego-main.png',
-    './assets/maps/active/deston-main.png',
-    './assets/maps/active/rondo-main.png'
+    './assets/maps/active/erangel-main.png'
 ];
 
 

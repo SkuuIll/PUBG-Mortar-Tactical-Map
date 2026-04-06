@@ -65,6 +65,8 @@ export class PubgMortarApp {
         this.isTopbarControlsOpen = true;
         this.activePanelSection = 'map';
         this.map = null;
+        this.mapResizeObserver = null;
+        this.mapResizeRafId = null;
 
         this.mapLayer = null;
         this.currentMapId = DEFAULT_MAP_ID;
@@ -79,12 +81,14 @@ export class PubgMortarApp {
 
     async initialize() {
         this.createMap();
+        this.setupMapResizeHandling();
         this.populateMapSelector();
         this.bindInterfaceEvents();
         this.initializeDrawingManager();
         this.initializeResponsiveInterface();
         this.initializeTheme();
         this.restoreInitialMap();
+
 
         if (this.initialState.isMortarMode !== null) {
             this.setMortarMode(this.initialState.isMortarMode, { silent: true });
@@ -146,6 +150,7 @@ export class PubgMortarApp {
             mobileShareButton: this.document.getElementById('mobileShareButton'),
             mobileHelpButton: this.document.getElementById('mobileHelpButton'),
             helpModal: this.document.getElementById('helpModal'),
+            helpModalDialog: this.document.querySelector('#helpModal .modal__dialog'),
             closeHelpButton: this.document.getElementById('closeHelpButton'),
             drawPanel: this.document.getElementById('drawPanel'),
             closeDrawPanelButton: this.document.getElementById('closeDrawPanelButton'),
@@ -230,6 +235,7 @@ export class PubgMortarApp {
                 this.toggleHelpModal(false);
             }
         });
+        this.elements.helpModal.addEventListener('keydown', (event) => this.handleHelpModalKeydown(event));
         this.document.addEventListener('keydown', (event) => this.handleKeyboardShortcuts(event));
         this.document.addEventListener('mouseup', () => this.drawingManager?.handlePointerUp());
         this.document.addEventListener('touchend', () => this.drawingManager?.handlePointerUp(), { passive: true });
@@ -260,6 +266,7 @@ export class PubgMortarApp {
 
                 this.setMapInteractionsEnabled(!isOpen);
                 this.syncDrawingTriggerState(isOpen);
+                this.scheduleMapResize();
             }
         });
 
@@ -286,6 +293,71 @@ export class PubgMortarApp {
             button: this.elements.installAppButton,
             onStatusChange: (message, tone) => this.showStatus(message, tone)
         });
+    }
+
+    setupMapResizeHandling() {
+        this.scheduleMapResize();
+
+        if (typeof this.window.ResizeObserver !== 'function') {
+            return;
+        }
+
+        this.mapResizeObserver = new this.window.ResizeObserver(() => {
+            this.scheduleMapResize();
+        });
+        this.mapResizeObserver.observe(this.elements.mapContainer);
+    }
+
+    scheduleMapResize() {
+        if (!this.map) {
+            return;
+        }
+
+        if (this.mapResizeRafId !== null) {
+            this.window.cancelAnimationFrame(this.mapResizeRafId);
+        }
+
+        this.mapResizeRafId = this.window.requestAnimationFrame(() => {
+            this.mapResizeRafId = this.window.requestAnimationFrame(() => {
+                this.mapResizeRafId = null;
+                this.map.invalidateSize({ pan: false, debounceMoveend: true });
+            });
+        });
+    }
+
+    getFocusableElements(container) {
+        if (!container) {
+            return [];
+        }
+
+        return [...container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+            .filter((element) => !element.hasAttribute('disabled') && !element.hidden && !element.getAttribute('aria-hidden'));
+    }
+
+    handleHelpModalKeydown(event) {
+        if (!this.elements.helpModal.classList.contains('is-open') || event.key !== 'Tab') {
+            return;
+        }
+
+        const focusableElements = this.getFocusableElements(this.elements.helpModalDialog);
+        if (!focusableElements.length) {
+            event.preventDefault();
+            return;
+        }
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (event.shiftKey && this.document.activeElement === firstElement) {
+            event.preventDefault();
+            lastElement.focus();
+            return;
+        }
+
+        if (!event.shiftKey && this.document.activeElement === lastElement) {
+            event.preventDefault();
+            firstElement.focus();
+        }
     }
 
     initializeResponsiveInterface() {
@@ -316,11 +388,13 @@ export class PubgMortarApp {
 
         if (!this.hasExplicitHudPreference) {
             this.setHudCollapsed(isNarrowHudLayout, { persist: false });
+            this.scheduleMapResize();
             return;
         }
 
         this.syncHudUiState();
         this.syncMobileToolbarState();
+        this.scheduleMapResize();
     }
 
     toggleTopbarControls() {
@@ -369,6 +443,7 @@ export class PubgMortarApp {
         this.elements.toggleTopbarButton.classList.toggle('is-active', this.isCompactLayout && shouldOpen);
         this.syncPanelSectionState();
         this.syncMobileToolbarState();
+        this.scheduleMapResize();
     }
 
     syncPanelSectionState() {
@@ -419,6 +494,7 @@ export class PubgMortarApp {
         }
 
         this.syncHudUiState();
+        this.scheduleMapResize();
     }
 
     syncHudUiState() {
@@ -530,6 +606,7 @@ export class PubgMortarApp {
         this.drawingManager?.clear();
         this.map.setMaxBounds(mapConfig.bounds);
         this.map.fitBounds(mapConfig.bounds, { padding: [20, 20] });
+        this.scheduleMapResize();
         this.syncUrlState();
 
         if (!silent) {
@@ -837,17 +914,38 @@ export class PubgMortarApp {
             this.setTopbarControlsOpen(false);
         }
 
+        if (shouldOpen) {
+            this.previouslyFocusedElement = this.document.activeElement;
+        }
+
         this.elements.helpModal.classList.toggle('is-open', shouldOpen);
         this.elements.helpModal.setAttribute('aria-hidden', String(!shouldOpen));
+
+        if (shouldOpen) {
+            this.window.requestAnimationFrame(() => {
+                this.elements.closeHelpButton?.focus();
+            });
+            return;
+        }
+
+        if (this.previouslyFocusedElement instanceof HTMLElement) {
+            this.previouslyFocusedElement.focus();
+        }
     }
 
 
     handleKeyboardShortcuts(event) {
+        const isHelpModalOpen = this.elements.helpModal.classList.contains('is-open');
+
         const tagName = event.target.tagName;
         if (tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA') {
             if (event.key === 'Escape') {
                 event.target.blur();
             }
+            return;
+        }
+
+        if (isHelpModalOpen && event.key.toLowerCase() !== 'escape') {
             return;
         }
 
@@ -891,6 +989,4 @@ export class PubgMortarApp {
 
     showStatus(message, tone = 'info') {
         this.elements.statusMessage.textContent = message;
-        this.elements.statusMessage.className = `status-bar status-bar--${tone}`;
-    }
-}
+        this.elements.statusMessage.className = `statu

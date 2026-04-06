@@ -80,6 +80,11 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--bg-pill);
+    transition: border-color var(--transition), background var(--transition);
+}
+
+.topbar__pill:hover {
+    border-color: var(--border-strong);
 }
 
 .topbar__pill-label {
@@ -119,6 +124,13 @@
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
     background: var(--bg-card);
+    box-shadow: var(--shadow-soft);
+    transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+}
+
+.command-card:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 .command-card__header,
@@ -348,7 +360,7 @@ option {
 .mobile-toolbar__action {
     transition: background var(--transition), border-color var(--transition),
                 color var(--transition), opacity var(--transition),
-                box-shadow var(--transition);
+                box-shadow var(--transition), transform var(--transition-fast);
 }
 
 .btn {
@@ -366,11 +378,21 @@ option {
     white-space: nowrap;
 }
 
-.btn:hover,
-.icon-btn:hover,
-.tool-btn:hover,
-.mobile-toolbar__action:hover {
-    opacity: 0.88;
+@media (hover: hover) and (pointer: fine) {
+    .btn:hover,
+    .icon-btn:hover,
+    .tool-btn:hover,
+    .mobile-toolbar__action:hover {
+        opacity: 0.92;
+        transform: translateY(-1px);
+    }
+
+    .btn:active,
+    .icon-btn:active,
+    .tool-btn:active,
+    .mobile-toolbar__action:active {
+        transform: translateY(0);
+    }
 }
 
 .btn:focus-visible,
@@ -613,6 +635,11 @@ option {
     border-radius: var(--radius-sm);
     background: var(--bg-soft);
     border: 1px solid var(--border);
+    transition: border-color var(--transition), background var(--transition);
+}
+
+.hud-item:hover {
+    border-color: var(--border-strong);
 }
 
 .hud-item--featured {
@@ -662,7 +689,7 @@ option {
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
     background: var(--bg-panel-strong);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-strong);
 }
 
 .mobile-toolbar__action {
@@ -711,7 +738,7 @@ option {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     background: var(--bg-panel-strong);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-strong);
 }
 
 .modal__body {
@@ -758,6 +785,24 @@ kbd {
     font-size: 0.72rem;
 }
 
+@media (min-width: 1600px) {
+    .brand h1 {
+        font-size: clamp(1rem, 0.7vw + 0.6rem, 1.24rem);
+    }
+
+    .command-card {
+        padding: 12px;
+    }
+
+    .hud-panel__primary {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .modal__dialog {
+        width: min(680px, 100%);
+    }
+}
+
 /* ══════════════════════════════════════
    RESPONSIVE — Components
    ══════════════════════════════════════ */
@@ -776,6 +821,12 @@ kbd {
     .topbar__overview {
         grid-column: 1 / -1;
         overflow-x: auto;
+        gap: 5px;
+    }
+
+    .command-card {
+        gap: 7px;
+        padding: 9px;
     }
 
     .hud-panel__primary {
@@ -784,6 +835,10 @@ kbd {
 }
 
 @media (max-width: 640px) {
+    .brand {
+        gap: 8px;
+    }
+
     .brand__icon {
         width: 30px;
         height: 30px;
@@ -796,6 +851,11 @@ kbd {
 
     .topbar__pill {
         padding: 3px 6px;
+    }
+
+    .command-card {
+        gap: 6px;
+        padding: 8px;
     }
 
     .action-grid--dual,
@@ -825,6 +885,15 @@ kbd {
     .hud-panel__primary,
     .hud-panel__secondary {
         grid-template-columns: 1fr;
+    }
+
+    .command-card {
+        padding: 8px;
+    }
+
+    .mobile-toolbar {
+        gap: 3px;
+        padding: 3px;
     }
 
     .mobile-toolbar__action {

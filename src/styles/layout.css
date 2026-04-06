@@ -4,6 +4,9 @@
    ────────────────────────────────────── */
 
 .app-shell {
+    width: 100%;
+    max-width: var(--app-max-width);
+    margin-inline: auto;
     height: 100vh;
     height: 100dvh;
     display: grid;
@@ -40,7 +43,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     background: var(--bg-surface);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-soft);
 }
 
 /* ─── WORKSPACE ─── */
@@ -75,23 +78,33 @@
 .battle-stage {
     position: relative;
     min-height: 0;
+    min-width: 0;
     display: grid;
+    grid-template-rows: minmax(0, 1fr);
 }
 
 .map-stage {
     position: relative;
     min-height: 0;
+    min-width: 0;
+    height: 100%;
     border-radius: var(--radius-lg);
     overflow: hidden;
     border: 1px solid var(--border);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-strong);
     background: var(--map-bg);
+    transition: border-color var(--transition), box-shadow var(--transition-slow);
+}
+
+.map-stage:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--focus-ring), var(--shadow);
 }
 
 .map-canvas {
     width: 100%;
     height: 100%;
-    min-height: inherit;
+    min-height: 100%;
 }
 
 /* ─── DRAW PANEL (overlay) ─── */
@@ -150,6 +163,34 @@
     display: none;
 }
 
+@media (min-width: 1600px) {
+    .app-shell {
+        gap: 12px;
+    }
+
+    .workspace {
+        gap: 12px;
+    }
+
+    .map-stage {
+        min-height: clamp(560px, 72vh, 940px);
+    }
+}
+
+@media (min-width: 1920px) {
+    .app-shell {
+        gap: 14px;
+    }
+
+    .workspace {
+        gap: 14px;
+    }
+
+    .map-stage {
+        min-height: clamp(620px, 74vh, 1020px);
+    }
+}
+
 /* ══════════════════════════════════════
    RESPONSIVE BREAKPOINTS
    ══════════════════════════════════════ */
@@ -169,19 +210,20 @@
     }
 
     .map-stage {
-        min-height: clamp(400px, 64vh, 760px);
+        min-height: clamp(420px, 68vh, 820px);
     }
 }
 
 @media (max-width: 900px) {
     .app-shell {
+        gap: 9px;
         padding-bottom: max(80px, calc(env(safe-area-inset-bottom) + 72px));
     }
 
     .topbar {
         grid-template-columns: minmax(0, 1fr) auto;
-        gap: 10px;
-        padding: 10px 12px;
+        gap: 9px;
+        padding: 9px 11px;
     }
 
     .command-panel {
@@ -192,13 +234,13 @@
         top: auto;
         z-index: 1450;
         max-height: min(68vh, 560px);
-        padding: 10px;
+        padding: 9px;
         background: var(--bg-mobile-sheet);
     }
 
     .battle-stage,
     .map-stage {
-        min-height: 58vh;
+        min-height: clamp(360px, 62dvh, 760px);
     }
 
     .draw-panel {
@@ -234,7 +276,7 @@
     }
 
     .map-stage {
-        min-height: 52svh;
+        min-height: clamp(320px, 56dvh, 620px);
         border-radius: var(--radius-md);
     }
 
@@ -261,7 +303,17 @@
     }
 
     .map-stage {
-        min-height: 48svh;
+        min-height: clamp(280px, 52dvh, 560px);
+    }
+}
+
+@media (max-width: 380px) {
+    .app-shell {
+        gap: 8px;
+    }
+
+    .map-stage {
+        min-height: clamp(260px, 50dvh, 520px);
     }
 }
 
@@ -271,7 +323,7 @@
     }
 
     .map-stage {
-        min-height: 380px;
+        min-height: 320px;
     }
 
     .hud-panel {

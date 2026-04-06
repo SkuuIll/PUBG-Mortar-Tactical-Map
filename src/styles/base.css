@@ -13,10 +13,12 @@ body {
 
 body {
     font-family: var(--font-body);
-    font-size: 14px;
+    font-size: clamp(14px, 0.2vw + 13px, 15px);
+    line-height: 1.35;
     color: var(--text-primary);
     background: var(--bg-page);
     overflow: hidden;
+    text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
