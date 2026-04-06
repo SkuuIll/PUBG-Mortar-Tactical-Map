@@ -226,8 +226,10 @@ export class PubgMortarApp {
                 const distanceMeters = this.calculateMeasurementDistance();
                 this.renderMortarLine(distanceMeters);
                 this.updateHud(distanceMeters);
+                this.updateMortarStatus(distanceMeters);
             }
         });
+
         this.elements.themeToggle.addEventListener('change', () => {
             const theme = toggleTheme(this.elements.themeToggle.checked, {
                 root: this.elements.root,
@@ -257,9 +259,10 @@ export class PubgMortarApp {
         this.elements.showHelpButton.addEventListener('click', () => this.toggleHelpModal(true));
         this.elements.mobileMenuButton.addEventListener('click', () => this.togglePanelSection('map'));
         this.elements.mobileHudButton.addEventListener('click', () => this.togglePanelSection('fire'));
-        this.elements.mobileDrawButton.addEventListener('click', () => this.togglePanelSection('draw'));
+        this.elements.mobileDrawButton.addEventListener('click', () => this.handleMobileDrawButtonClick());
         this.elements.mobileShareButton.addEventListener('click', () => this.togglePanelSection('actions'));
         this.elements.mobileHelpButton.addEventListener('click', () => this.togglePanelSection('more'));
+
         this.elements.closeHelpButton.addEventListener('click', () => this.toggleHelpModal(false));
         this.elements.helpModal.addEventListener('click', (event) => {
             if (event.target === this.elements.helpModal) {
@@ -427,7 +430,42 @@ export class PubgMortarApp {
         }
     }
 
+    getMortarShotData(distanceMeters = this.calculateMeasurementDistance()) {
+        const elevation = parseFloat(this.elements.elevationInput.value) || 0;
+        const elevatedDistance = this.isMortarMode && distanceMeters > 0
+            ? getElevatedDistance(distanceMeters, elevation)
+            : distanceMeters;
+        const displayDistance = elevatedDistance !== null ? elevatedDistance : distanceMeters;
+        const validShot = elevatedDistance !== null && isMortarDistanceValid(elevatedDistance);
+
+        return {
+            elevation,
+            elevatedDistance,
+            displayDistance,
+            validShot
+        };
+    }
+
+    updateMortarStatus(distanceMeters = this.calculateMeasurementDistance()) {
+        if (!this.isMortarMode || distanceMeters <= 0) {
+            return;
+        }
+
+        const { elevation, elevatedDistance, validShot } = this.getMortarShotData(distanceMeters);
+        const elevationDetail = !elevation
+            ? ''
+            : elevatedDistance === null
+                ? ' Ajuste de elevación no alcanzable.'
+                : ` Ajuste mortero: ${Math.round(elevatedDistance)} m.`;
+
+        this.showStatus(
+            `${validShot ? 'Objetivo válido' : 'Objetivo fuera de rango'} a ${distanceMeters} m.${elevationDetail}`,
+            validShot ? 'success' : 'warning'
+        );
+    }
+
     syncResponsiveChrome({ force = false } = {}) {
+
 
         const isCompactLayout = this.window.matchMedia('(max-width: 900px)').matches;
         const isNarrowHudLayout = this.window.matchMedia('(max-width: 640px)').matches;
@@ -477,8 +515,17 @@ export class PubgMortarApp {
         this.setTopbarControlsOpen(!isSameSectionOpen);
     }
 
+    handleMobileDrawButtonClick() {
+        if (this.drawingManager?.isPanelOpen) {
+            this.drawingManager.togglePanel(false);
+            return;
+        }
+
+        this.togglePanelSection('draw');
+    }
 
     setActivePanelSection(sectionKey = 'map') {
+
         const availableSections = new Set(this.elements.panelSections.map((section) => section.dataset.panelSection));
         this.activePanelSection = availableSections.has(sectionKey) ? sectionKey : 'map';
         this.syncPanelSectionState();
@@ -534,10 +581,13 @@ export class PubgMortarApp {
 
         Object.entries(triggerMap).forEach(([sectionKey, button]) => {
             const isActive = Boolean(buttonStateMap[sectionKey]);
+            const isExpanded = this.isCompactLayout && this.isTopbarControlsOpen && activeSection === sectionKey;
             button.classList.toggle('is-active', isActive);
             button.setAttribute('aria-pressed', String(isActive));
+            button.setAttribute('aria-expanded', String(isExpanded));
         });
     }
+
 
     toggleHudCollapsed() {
         this.setHudCollapsed(!this.isHudCollapsed);
@@ -737,15 +787,9 @@ export class PubgMortarApp {
         const distanceMeters = this.calculateMeasurementDistance();
         this.renderMortarLine(distanceMeters);
         this.updateHud(distanceMeters);
-
-        const isValidShot = isMortarDistanceValid(distanceMeters);
-        this.showStatus(
-            isValidShot
-                ? `Objetivo válido a ${distanceMeters} m.`
-                : `Objetivo fuera de rango a ${distanceMeters} m.`,
-            isValidShot ? 'success' : 'warning'
-        );
+        this.updateMortarStatus(distanceMeters);
     }
+
 
     addMeasurementPoint(latlng, type) {
         const marker = L.marker(latlng, { icon: MARKER_ICONS[type] }).addTo(this.map);
@@ -786,14 +830,17 @@ export class PubgMortarApp {
     renderMortarLine(distanceMeters) {
         this.removeMeasurementLine();
 
-        const elevation = parseFloat(this.elements.elevationInput.value) || 0;
-        const elevatedDistance = getElevatedDistance(distanceMeters, elevation);
+        const {
+            elevation,
+            elevatedDistance,
+            displayDistance,
+            validShot
+        } = this.getMortarShotData(distanceMeters);
+        const hasBallisticSolution = validShot;
+        const angle = hasBallisticSolution ? getMortarAngle(displayDistance) : null;
+        const flightTime = hasBallisticSolution ? getFlightTimeSeconds(displayDistance).toFixed(1) : '--';
 
-        const validShot = elevatedDistance !== null && isMortarDistanceValid(elevatedDistance);
-        // Calcula ángulo y tiempo aunque esté fuera de rango, para dar feedback visual al usuario.
-        const displayDistance = elevatedDistance !== null ? elevatedDistance : distanceMeters;
-        const angle = getMortarAngle(displayDistance);
-        const flightTime = getFlightTimeSeconds(displayDistance).toFixed(1);
+
 
         this.measurementLine = L.polyline(this.measurementPoints.map((point) => [point.lat, point.lng]), {
             color: validShot ? '#00c853' : '#ff922b',
@@ -892,14 +939,18 @@ export class PubgMortarApp {
 
     updateHud(distanceMeters = this.calculateMeasurementDistance()) {
         const shouldShowMortarData = this.isMortarMode && distanceMeters > 0;
-        const elevation = parseFloat(this.elements.elevationInput.value) || 0;
-        const elevatedDist = shouldShowMortarData ? getElevatedDistance(distanceMeters, elevation) : distanceMeters;
-        const validShot = elevatedDist !== null && isMortarDistanceValid(elevatedDist);
+        const {
+            elevation,
+            elevatedDistance,
+            displayDistance,
+            validShot
+        } = this.getMortarShotData(distanceMeters);
 
-        // Calcula ángulo y tiempo visual aunque esté fuera de rango.
-        const displayDist = elevatedDist !== null ? elevatedDist : distanceMeters;
-        const angle = shouldShowMortarData ? getMortarAngle(displayDist) : null;
-        const flightTime = shouldShowMortarData ? `${getFlightTimeSeconds(displayDist).toFixed(1)} s` : '-- s';
+        const hasBallisticSolution = validShot;
+        const angle = shouldShowMortarData && hasBallisticSolution ? getMortarAngle(displayDistance) : null;
+        const flightTime = shouldShowMortarData && hasBallisticSolution ? `${getFlightTimeSeconds(displayDistance).toFixed(1)} s` : '-- s';
+
+
         const rangeStatus = !distanceMeters
             ? 'Esperando'
             : this.isMortarMode
@@ -907,10 +958,10 @@ export class PubgMortarApp {
                 : 'Medición lista';
 
         this.elements.distanceValue.textContent = `${String(distanceMeters || 0).padStart(4, '0')} m`;
-        
+
         if (shouldShowMortarData && elevation) {
             this.elements.elevatedDistanceContainer.hidden = false;
-            this.elements.elevatedDistanceValue.textContent = elevatedDist !== null ? `${Math.round(elevatedDist)} m` : 'N/A';
+            this.elements.elevatedDistanceValue.textContent = elevatedDistance !== null ? `${Math.round(elevatedDistance)} m` : 'N/A';
         } else {
             this.elements.elevatedDistanceContainer.hidden = true;
         }
@@ -922,6 +973,7 @@ export class PubgMortarApp {
         this.elements.rangeStatusValue.textContent = rangeStatus;
         this.syncContextSummary();
     }
+
 
 
     getShareUrl() {

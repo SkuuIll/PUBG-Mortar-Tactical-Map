@@ -202,15 +202,6 @@
         overflow: auto;
     }
 
-    .workspace {
-        grid-template-columns: 1fr;
-    }
-
-    .command-panel {
-        position: static;
-        max-height: none;
-    }
-
     .map-stage {
         min-height: clamp(420px, 68vh, 820px);
     }
@@ -220,6 +211,10 @@
     .app-shell {
         gap: 9px;
         padding-bottom: max(80px, calc(env(safe-area-inset-bottom) + 72px));
+    }
+
+    .workspace {
+        grid-template-columns: 1fr;
     }
 
     .topbar {

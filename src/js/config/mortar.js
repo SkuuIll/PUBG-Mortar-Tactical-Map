@@ -26,13 +26,18 @@ export function isMortarDistanceValid(distanceMeters) {
 }
 
 export function getMortarAngle(distanceMeters) {
-    if (!Number.isFinite(distanceMeters) || distanceMeters < MORTAR_CONFIG.minRangeMeters) {
+    if (
+        !Number.isFinite(distanceMeters)
+        || distanceMeters < MORTAR_CONFIG.minRangeMeters
+        || distanceMeters > MORTAR_CONFIG.maxRangeMeters
+    ) {
         return null;
     }
 
     const matchingEntry = ANGLE_TABLE.find(({ maxDistance }) => distanceMeters <= maxDistance);
-    return matchingEntry?.angle ?? 40;
+    return matchingEntry?.angle ?? null;
 }
+
 
 export function getFlightTimeSeconds(distanceMeters) {
     if (!Number.isFinite(distanceMeters) || distanceMeters <= 0) {

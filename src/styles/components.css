@@ -77,6 +77,8 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
+    justify-self: end;
+    min-width: 0;
     gap: 4px;
 }
 
@@ -108,7 +110,6 @@
 }
 
 .brand {
-    grid-area: brand;
     min-width: 0;
 }
 
@@ -121,8 +122,8 @@
 .topbar__actions {
     display: flex;
     align-items: center;
+    justify-self: end;
     gap: 6px;
-    grid-area: actions;
 }
 
 .topbar__toggle {
@@ -893,6 +894,14 @@ kbd {
 }
 
 @media (max-width: 900px) {
+    .brand {
+        grid-area: brand;
+    }
+
+    .topbar__actions {
+        grid-area: actions;
+    }
+
     .topbar__toggle {
         display: inline-grid;
     }
@@ -903,6 +912,7 @@ kbd {
 
     .topbar__overview {
         grid-area: overview;
+        justify-self: stretch;
         overflow-x: auto;
         gap: 5px;
     }

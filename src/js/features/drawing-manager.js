@@ -37,10 +37,12 @@ export class DrawingManager {
     bindPanelEvents() {
         this.elements.toggleButton.addEventListener('click', () => this.togglePanel());
         this.elements.closeButton.addEventListener('click', () => this.togglePanel(false));
+        this.elements.panel.addEventListener('keydown', (event) => this.handlePanelKeydown(event));
         this.elements.clearButton.addEventListener('click', () => {
             this.clear();
             this.onStatusChange('Todos los dibujos fueron eliminados.', 'info');
         });
+
 
         this.elements.toolButtons.forEach((button) => {
             button.addEventListener('click', () => this.setTool(button.dataset.tool));
@@ -70,6 +72,7 @@ export class DrawingManager {
             this.previouslyFocusedElement = document.activeElement instanceof HTMLElement
                 ? document.activeElement
                 : null;
+            this.elements.panel.hidden = false;
         }
 
         this.isPanelOpen = isOpen;
@@ -87,12 +90,21 @@ export class DrawingManager {
         }
 
         this.resetInteractionState();
+        this.elements.panel.hidden = true;
 
-        const focusTarget = this.previouslyFocusedElement && typeof this.previouslyFocusedElement.focus === 'function'
+        const mobileDrawButton = document.getElementById('mobileDrawButton');
+        const canFocusPrevious = this.previouslyFocusedElement
+            && typeof this.previouslyFocusedElement.focus === 'function'
+            && this.previouslyFocusedElement.getClientRects().length;
+        const canFocusToggle = this.elements.toggleButton.getClientRects().length;
+        const focusTarget = canFocusPrevious
             ? this.previouslyFocusedElement
-            : this.elements.toggleButton;
+            : canFocusToggle
+                ? this.elements.toggleButton
+                : mobileDrawButton;
         focusTarget?.focus();
     }
+
 
 
     setTool(tool) {
@@ -119,7 +131,9 @@ export class DrawingManager {
 
     syncToolState() {
         this.elements.toolButtons.forEach((button) => {
-            button.classList.toggle('is-active', button.dataset.tool === this.currentTool);
+            const isActive = button.dataset.tool === this.currentTool;
+            button.classList.toggle('is-active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
         });
 
         const shouldShowTextSection = this.currentTool === 'text';
@@ -128,9 +142,53 @@ export class DrawingManager {
 
     syncColorState() {
         this.elements.colorButtons.forEach((button) => {
-            button.classList.toggle('is-active', button.dataset.color === this.currentColor);
+            const isActive = button.dataset.color === this.currentColor;
+            button.classList.toggle('is-active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
         });
     }
+
+    getFocusableElements(container) {
+        return [...container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+            .filter((element) => !element.hasAttribute('disabled') && !element.hidden && !element.getAttribute('aria-hidden'));
+    }
+
+    handlePanelKeydown(event) {
+        if (!this.isPanelOpen) {
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            this.togglePanel(false);
+            return;
+        }
+
+        if (event.key !== 'Tab') {
+            return;
+        }
+
+        const focusableElements = this.getFocusableElements(this.elements.panel);
+        if (!focusableElements.length) {
+            event.preventDefault();
+            return;
+        }
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (event.shiftKey && document.activeElement === firstElement) {
+            event.preventDefault();
+            lastElement.focus();
+            return;
+        }
+
+        if (!event.shiftKey && document.activeElement === lastElement) {
+            event.preventDefault();
+            firstElement.focus();
+        }
+    }
+
 
     handlePointerDown(event) {
         if (!this.isPanelOpen || !SHAPE_TOOLS.has(this.currentTool)) {

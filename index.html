@@ -234,12 +234,13 @@
                     <div id="map" class="map-canvas" aria-label="Mapa interactivo de PUBG"></div>
                 </section>
 
-                <aside class="draw-panel" id="drawPanel" aria-hidden="true">
+                <aside class="draw-panel" id="drawPanel" aria-hidden="true" role="dialog" aria-modal="false" aria-labelledby="drawPanelTitle">
                     <div class="draw-panel__header">
                         <div>
                             <p class="eyebrow">Herramientas</p>
-                            <h2>Dibujo táctico</h2>
+                            <h2 id="drawPanelTitle">Dibujo táctico</h2>
                         </div>
+
                         <button class="icon-btn" id="closeDrawPanelButton" type="button" aria-label="Cerrar panel de dibujo">✕</button>
                     </div>
 
@@ -339,23 +340,28 @@
         </footer>
 
         <nav class="mobile-toolbar" aria-label="Secciones tácticas">
-            <button class="mobile-toolbar__action" id="mobileMenuButton" type="button" aria-label="Abrir sección de mapa" aria-controls="topbarControls" aria-pressed="false">
+            <button class="mobile-toolbar__action" id="mobileMenuButton" type="button" aria-label="Abrir sección de mapa" aria-controls="topbarControls" aria-expanded="false" aria-pressed="false">
+
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" x2="9" y1="3" y2="18"></line><line x1="15" x2="15" y1="6" y2="21"></line></svg>
                 <span>Mapa</span>
             </button>
-            <button class="mobile-toolbar__action" id="mobileHudButton" type="button" aria-label="Abrir sección de tiro" aria-controls="topbarControls" aria-pressed="false">
+            <button class="mobile-toolbar__action" id="mobileHudButton" type="button" aria-label="Abrir sección de tiro" aria-controls="topbarControls" aria-expanded="false" aria-pressed="false">
+
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
                 <span>Tiro</span>
             </button>
-            <button class="mobile-toolbar__action" id="mobileDrawButton" type="button" aria-label="Abrir sección de dibujo" aria-controls="topbarControls" aria-pressed="false">
+            <button class="mobile-toolbar__action" id="mobileDrawButton" type="button" aria-label="Abrir sección de dibujo" aria-controls="topbarControls" aria-expanded="false" aria-pressed="false">
+
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
                 <span>Dibujo</span>
             </button>
-            <button class="mobile-toolbar__action" id="mobileShareButton" type="button" aria-label="Abrir sección de acciones" aria-controls="topbarControls" aria-pressed="false">
+            <button class="mobile-toolbar__action" id="mobileShareButton" type="button" aria-label="Abrir sección de acciones" aria-controls="topbarControls" aria-expanded="false" aria-pressed="false">
+
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
                 <span>Acción</span>
             </button>
-            <button class="mobile-toolbar__action" id="mobileHelpButton" type="button" aria-label="Abrir sección de ayuda" aria-controls="topbarControls" aria-pressed="false">
+            <button class="mobile-toolbar__action" id="mobileHelpButton" type="button" aria-label="Abrir sección de ayuda" aria-controls="topbarControls" aria-expanded="false" aria-pressed="false">
+
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>
                 <span>Más</span>
             </button>
