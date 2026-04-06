@@ -297,9 +297,11 @@ export class PubgMortarApp {
 
                 this.setMapInteractionsEnabled(!isOpen);
                 this.syncDrawingTriggerState(isOpen);
+                this.syncCompactOverlayHudState();
                 this.scheduleMapResize();
             }
         });
+
 
         this.drawingManager.initialize();
         this.syncDrawingTriggerState(false);
@@ -404,7 +406,29 @@ export class PubgMortarApp {
         this.syncResponsiveChrome({ force: true });
     }
 
+    getPreferredHudCollapsedState() {
+        if (this.hasExplicitHudPreference) {
+            return this.window.localStorage.getItem(HUD_COLLAPSED_STORAGE_KEY) === 'true';
+        }
+
+        return this.window.matchMedia('(max-width: 640px)').matches;
+    }
+
+    syncCompactOverlayHudState() {
+        const hasCompactOverlayOpen = this.isCompactLayout && (
+            this.isTopbarControlsOpen
+            || this.drawingManager?.isPanelOpen
+            || this.elements.helpModal.classList.contains('is-open')
+        );
+        const nextHudCollapsedState = hasCompactOverlayOpen ? true : this.getPreferredHudCollapsedState();
+
+        if (nextHudCollapsedState !== this.isHudCollapsed) {
+            this.setHudCollapsed(nextHudCollapsedState, { persist: false });
+        }
+    }
+
     syncResponsiveChrome({ force = false } = {}) {
+
         const isCompactLayout = this.window.matchMedia('(max-width: 900px)').matches;
         const isNarrowHudLayout = this.window.matchMedia('(max-width: 640px)').matches;
         const compactLayoutChanged = force || isCompactLayout !== this.isCompactLayout;
@@ -419,14 +443,17 @@ export class PubgMortarApp {
 
         if (!this.hasExplicitHudPreference) {
             this.setHudCollapsed(isNarrowHudLayout, { persist: false });
+            this.syncCompactOverlayHudState();
             this.scheduleMapResize();
             return;
         }
 
+        this.syncCompactOverlayHudState();
         this.syncHudUiState();
         this.syncMobileToolbarState();
         this.scheduleMapResize();
     }
+
 
     toggleTopbarControls() {
         if (!this.isCompactLayout) {
@@ -474,8 +501,10 @@ export class PubgMortarApp {
         this.elements.toggleTopbarButton.classList.toggle('is-active', this.isCompactLayout && shouldOpen);
         this.syncPanelSectionState();
         this.syncMobileToolbarState();
+        this.syncCompactOverlayHudState();
         this.scheduleMapResize();
     }
+
 
     syncPanelSectionState() {
         this.elements.panelSections.forEach((section) => {
@@ -985,8 +1014,10 @@ export class PubgMortarApp {
 
         this.elements.helpModal.classList.toggle('is-open', shouldOpen);
         this.elements.helpModal.setAttribute('aria-hidden', String(!shouldOpen));
+        this.syncCompactOverlayHudState();
 
         if (shouldOpen) {
+
             this.window.requestAnimationFrame(() => {
                 this.elements.closeHelpButton?.focus();
             });
