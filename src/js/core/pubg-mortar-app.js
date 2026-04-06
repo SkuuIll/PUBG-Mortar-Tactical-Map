@@ -556,16 +556,20 @@ export class PubgMortarApp {
         const mapConfig = getMapConfig(this.currentMapId);
         const workflow = this.getWorkflowContent();
 
-        this.elements.activeMapLabel.textContent = mapConfig.label;
+        if (this.elements.activeMapLabel) {
+            this.elements.activeMapLabel.textContent = mapConfig.label;
+        }
+
         this.elements.activeModeLabel.textContent = this.isMortarMode ? 'Mortero' : 'Distancia';
         this.elements.activeThemeLabel.textContent = this.currentTheme === THEMES.light ? 'Claro' : 'Oscuro';
         this.elements.mapPreviewName.textContent = mapConfig.label;
-        this.elements.mapPreviewMeta.textContent = mapConfig.sizeLabel;
+        this.elements.mapPreviewMeta.textContent = `${mapConfig.sizeLabel} • ${mapConfig.description}`;
         this.elements.mapPreviewCard.style.setProperty('--map-preview', `url("${mapConfig.assetPath}")`);
 
         this.elements.workflowStep.textContent = workflow.step;
         this.elements.workflowHint.textContent = workflow.hint;
     }
+
 
     getWorkflowContent() {
         if (this.isMortarMode) {

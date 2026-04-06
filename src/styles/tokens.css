@@ -40,6 +40,7 @@
 
     /* Accent */
     --accent: #3b82f6;
+    --accent-primary: var(--accent);
     --accent-strong: #2563eb;
     --accent-secondary: #6366f1;
     --accent-tertiary: #8b5cf6;

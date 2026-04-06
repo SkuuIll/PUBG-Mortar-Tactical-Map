@@ -23,7 +23,9 @@ export class DrawingManager {
         this.freehandLatLngs = [];
         this.pendingTextLatLng = null;
         this.layers = new Set();
+        this.previouslyFocusedElement = null;
     }
+
 
     initialize() {
         this.bindPanelEvents();
@@ -64,16 +66,34 @@ export class DrawingManager {
     }
 
     syncPanelState(isOpen) {
+        if (isOpen) {
+            this.previouslyFocusedElement = document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
+        }
+
         this.isPanelOpen = isOpen;
         this.elements.panel.classList.toggle('is-open', isOpen);
         this.elements.panel.setAttribute('aria-hidden', String(!isOpen));
         this.elements.toggleButton.setAttribute('aria-pressed', String(isOpen));
         this.onPanelVisibilityChange(isOpen);
 
-        if (!isOpen) {
-            this.resetInteractionState();
+        if (isOpen) {
+            requestAnimationFrame(() => {
+                const activeToolButton = this.elements.toolButtons.find((button) => button.dataset.tool === this.currentTool);
+                (this.elements.closeButton || activeToolButton || this.elements.toggleButton)?.focus();
+            });
+            return;
         }
+
+        this.resetInteractionState();
+
+        const focusTarget = this.previouslyFocusedElement && typeof this.previouslyFocusedElement.focus === 'function'
+            ? this.previouslyFocusedElement
+            : this.elements.toggleButton;
+        focusTarget?.focus();
     }
+
 
     setTool(tool) {
         this.currentTool = tool || DEFAULT_TOOL;

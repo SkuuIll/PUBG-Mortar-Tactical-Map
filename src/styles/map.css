@@ -37,10 +37,10 @@
     background: var(--zoom-control-bg);
     color: var(--text-primary);
     border-bottom-color: var(--border);
-    width: 30px !important;
-    height: 30px !important;
-    line-height: 30px !important;
-    font-size: 14px !important;
+    width: 34px !important;
+    height: 34px !important;
+    line-height: 34px !important;
+    font-size: 15px !important;
 }
 
 .leaflet-control-zoom a:hover,
@@ -51,10 +51,10 @@
 
 @media (pointer: coarse) {
     .leaflet-control-zoom a {
-        width: 36px !important;
-        height: 36px !important;
-        line-height: 36px !important;
-        font-size: 16px !important;
+        width: 44px !important;
+        height: 44px !important;
+        line-height: 44px !important;
+        font-size: 18px !important;
     }
 }
 
@@ -104,7 +104,7 @@
     align-items: center;
     justify-content: center;
     min-width: 60px;
-    max-width: 200px;
+    max-width: min(200px, 50vw);
     padding: 4px 10px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border);
@@ -113,7 +113,9 @@
     font-size: 0.78rem;
     font-weight: 600;
     text-align: center;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
     box-shadow: var(--marker-shadow);
 }
 

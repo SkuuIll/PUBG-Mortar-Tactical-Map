@@ -26,15 +26,19 @@ export function isMortarDistanceValid(distanceMeters) {
 }
 
 export function getMortarAngle(distanceMeters) {
-    if (distanceMeters < MORTAR_CONFIG.minRangeMeters) {
+    if (!Number.isFinite(distanceMeters) || distanceMeters < MORTAR_CONFIG.minRangeMeters) {
         return null;
     }
 
-    const matchingEntry = ANGLE_TABLE.find(({ maxDistance }) => distanceMeters < maxDistance);
+    const matchingEntry = ANGLE_TABLE.find(({ maxDistance }) => distanceMeters <= maxDistance);
     return matchingEntry?.angle ?? 40;
 }
 
 export function getFlightTimeSeconds(distanceMeters) {
+    if (!Number.isFinite(distanceMeters) || distanceMeters <= 0) {
+        return 0;
+    }
+
     return distanceMeters / MORTAR_CONFIG.projectileSpeedMetersPerSecond;
 }
 
@@ -47,20 +51,27 @@ export function getFlightTimeSeconds(distanceMeters) {
  */
 export function getElevatedDistance(distanceMeters, elevationMeters) {
     const maxMortar = MORTAR_CONFIG.maxMortarDistanceLimit;
+
+    if (!Number.isFinite(distanceMeters) || distanceMeters <= 0) {
+        return elevationMeters === 0 || !elevationMeters ? 0 : null;
+    }
+
     if (elevationMeters === 0 || !elevationMeters) {
         return distanceMeters;
     }
+
     const tanBeta = elevationMeters / distanceMeters;
-    
+
     // Formula discriminante para caída balística del mortero en PUBG
     const discriminant = Math.pow(maxMortar, 2) - 2 * distanceMeters * maxMortar * tanBeta - Math.pow(distanceMeters, 2);
-    
+
     if (discriminant < 0) {
         return null; // Objetivo inalcanzable por la pendiente
     }
-    
+
     const sqrtTerm = Math.sqrt(discriminant);
     const elevatedDistance = (distanceMeters + tanBeta * (maxMortar - sqrtTerm)) / (Math.pow(tanBeta, 2) + 1);
-    
-    return elevatedDistance;
+
+    return Number.isFinite(elevatedDistance) ? elevatedDistance : null;
 }
+
