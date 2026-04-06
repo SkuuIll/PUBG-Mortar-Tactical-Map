@@ -53,8 +53,8 @@
 
             <div class="topbar__overview" aria-label="Resumen táctico actual">
                 <div class="topbar__pill">
-                    <span class="topbar__pill-label">Mapa</span>
-                    <strong id="activeMapLabel">Erangel</strong>
+                    <label class="topbar__pill-label" for="topbarMapSelect">Mapa</label>
+                    <select id="topbarMapSelect" class="topbar__select" aria-label="Seleccionar mapa rápido"></select>
                 </div>
                 <div class="topbar__pill">
                     <span class="topbar__pill-label">Modo</span>
@@ -67,6 +67,9 @@
             </div>
 
             <div class="topbar__actions">
+                <button class="icon-btn" id="topbarClearButton" type="button" aria-label="Limpiar Medición" title="Limpiar mediciones del mapa" style="color: var(--error); border-color: rgba(239, 68, 68, 0.3);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
                 <button class="btn btn--ghost topbar__hud-button" id="toggleHudButton" type="button" aria-label="Ocultar HUD" aria-controls="hudPanelGrid" aria-expanded="true">HUD</button>
                 <button class="icon-btn topbar__toggle" id="toggleTopbarButton" type="button" aria-label="Mostrar panel táctico" aria-controls="topbarControls" aria-expanded="false">☰</button>
             </div>
@@ -123,6 +126,11 @@
                                 <span class="mode-switch__label mode-switch__label--accent">Mortero</span>
                             </div>
                             <span class="control-group__value" id="modeLabel">Distancia</span>
+                        </div>
+                        
+                        <div class="control-group control-group--stacked" id="elevationControlGroup" hidden>
+                            <label class="control-group__label" for="elevationInput">Elevación obj. (m) <small style="opacity:0.7">(Opcional)</small></label>
+                            <input type="number" id="elevationInput" class="panel-input" placeholder="Ej: 50 (arriba) o -20 (abajo)" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: inherit; font-family: inherit;">
                         </div>
 
                         <div class="workflow-card">
@@ -294,6 +302,10 @@
                         <span class="hud-item__label">Distancia</span>
                         <span class="hud-item__value" id="distanceValue">0000 m</span>
                     </div>
+                    <div class="hud-item hud-item--featured" id="elevatedDistanceContainer" hidden>
+                        <span class="hud-item__label" style="color: var(--accent-primary)">Dist. Mortero</span>
+                        <span class="hud-item__value" id="elevatedDistanceValue" style="color: var(--accent-primary)">-- m</span>
+                    </div>
                     <div class="hud-item hud-item--featured">
                         <span class="hud-item__label">Ángulo</span>
                         <span class="hud-item__value" id="angleValue">--°</span>
@@ -326,11 +338,26 @@
         </footer>
 
         <nav class="mobile-toolbar" aria-label="Secciones tácticas">
-            <button class="mobile-toolbar__action" id="mobileMenuButton" type="button" aria-label="Abrir sección de mapa" aria-controls="topbarControls" aria-pressed="false">Mapa</button>
-            <button class="mobile-toolbar__action" id="mobileHudButton" type="button" aria-label="Abrir sección de tiro" aria-controls="topbarControls" aria-pressed="false">Tiro</button>
-            <button class="mobile-toolbar__action" id="mobileDrawButton" type="button" aria-label="Abrir sección de dibujo" aria-controls="topbarControls" aria-pressed="false">Dibujo</button>
-            <button class="mobile-toolbar__action" id="mobileShareButton" type="button" aria-label="Abrir sección de acciones" aria-controls="topbarControls" aria-pressed="false">Acciones</button>
-            <button class="mobile-toolbar__action" id="mobileHelpButton" type="button" aria-label="Abrir sección de ayuda" aria-controls="topbarControls" aria-pressed="false">Más</button>
+            <button class="mobile-toolbar__action" id="mobileMenuButton" type="button" aria-label="Abrir sección de mapa" aria-controls="topbarControls" aria-pressed="false">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" x2="9" y1="3" y2="18"></line><line x1="15" x2="15" y1="6" y2="21"></line></svg>
+                <span>Mapa</span>
+            </button>
+            <button class="mobile-toolbar__action" id="mobileHudButton" type="button" aria-label="Abrir sección de tiro" aria-controls="topbarControls" aria-pressed="false">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                <span>Tiro</span>
+            </button>
+            <button class="mobile-toolbar__action" id="mobileDrawButton" type="button" aria-label="Abrir sección de dibujo" aria-controls="topbarControls" aria-pressed="false">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+                <span>Dibujo</span>
+            </button>
+            <button class="mobile-toolbar__action" id="mobileShareButton" type="button" aria-label="Abrir sección de acciones" aria-controls="topbarControls" aria-pressed="false">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+                <span>Acción</span>
+            </button>
+            <button class="mobile-toolbar__action" id="mobileHelpButton" type="button" aria-label="Abrir sección de ayuda" aria-controls="topbarControls" aria-pressed="false">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>
+                <span>Más</span>
+            </button>
         </nav>
     </div>
 

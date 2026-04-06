@@ -156,9 +156,9 @@
 /* ─── MOBILE TOOLBAR ─── */
 .mobile-toolbar {
     position: fixed;
-    left: max(8px, env(safe-area-inset-left));
-    right: max(8px, env(safe-area-inset-right));
-    bottom: max(8px, env(safe-area-inset-bottom));
+    left: max(16px, env(safe-area-inset-left));
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
     z-index: 1500;
     display: none;
 }
@@ -222,6 +222,9 @@
 
     .topbar {
         grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: 
+            "brand actions"
+            "overview overview";
         gap: 9px;
         padding: 9px 11px;
     }

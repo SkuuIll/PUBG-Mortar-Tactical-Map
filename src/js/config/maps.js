@@ -27,11 +27,11 @@ export const MAP_CONFIG = Object.freeze({
     vikendi: {
         id: 'vikendi',
         label: 'Vikendi',
-        sizeLabel: '6×6',
+        sizeLabel: '8×8',
         assetPath: './assets/maps/active/vikendi-main.png',
         bounds: [[0, 0], [2000, 2000]],
-        metersPerUnit: 3,
-        description: 'Mapa nevado 6×6.'
+        metersPerUnit: 4,
+        description: 'Mapa nevado 8×8 (Reborn).'
     },
     taego: {
         id: 'taego',
@@ -54,11 +54,11 @@ export const MAP_CONFIG = Object.freeze({
     rondo: {
         id: 'rondo',
         label: 'Rondo',
-        sizeLabel: '4×4',
+        sizeLabel: '8×8',
         assetPath: './assets/maps/active/rondo-main.png',
         bounds: [[0, 0], [2000, 2000]],
-        metersPerUnit: 2,
-        description: 'Mapa compacto 4×4.'
+        metersPerUnit: 4,
+        description: 'Mapa tradicional 8×8.'
     }
 });
 

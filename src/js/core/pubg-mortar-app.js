@@ -7,7 +7,8 @@ import {
     MORTAR_CONFIG,
     getFlightTimeSeconds,
     getMortarAngle,
-    isMortarDistanceValid
+    isMortarDistanceValid,
+    getElevatedDistance
 } from '../config/mortar.js';
 import { exportMapSnapshot } from '../features/export-service.js';
 import { DrawingManager } from '../features/drawing-manager.js';
@@ -120,8 +121,11 @@ export class PubgMortarApp {
             panelSections: [...this.document.querySelectorAll('[data-panel-section]')],
             mapContainer: this.document.getElementById('map'),
             mapSelect: this.document.getElementById('mapSelect'),
+            topbarMapSelect: this.document.getElementById('topbarMapSelect'),
             interactionModeToggle: this.document.getElementById('interactionModeToggle'),
             modeLabel: this.document.getElementById('modeLabel'),
+            elevationControlGroup: this.document.getElementById('elevationControlGroup'),
+            elevationInput: this.document.getElementById('elevationInput'),
             themeToggle: this.document.getElementById('themeToggle'),
             themeLabel: this.document.getElementById('themeLabel'),
             themeIcon: this.document.getElementById('themeIcon'),
@@ -131,6 +135,8 @@ export class PubgMortarApp {
             toggleHudButton: this.document.getElementById('toggleHudButton'),
             collapseHudButton: this.document.getElementById('collapseHudButton'),
             distanceValue: this.document.getElementById('distanceValue'),
+            elevatedDistanceContainer: this.document.getElementById('elevatedDistanceContainer'),
+            elevatedDistanceValue: this.document.getElementById('elevatedDistanceValue'),
             angleValue: this.document.getElementById('angleValue'),
             flightTimeValue: this.document.getElementById('flightTimeValue'),
             shellRadiusValue: this.document.getElementById('shellRadiusValue'),
@@ -143,6 +149,7 @@ export class PubgMortarApp {
             installAppButton: this.document.getElementById('installAppButton'),
             resetMeasurementButton: this.document.getElementById('resetMeasurementButton'),
             clearMeasurementButton: this.document.getElementById('clearMeasurementButton'),
+            topbarClearButton: this.document.getElementById('topbarClearButton'),
             showHelpButton: this.document.getElementById('showHelpButton'),
             mobileMenuButton: this.document.getElementById('mobileMenuButton'),
             mobileDrawButton: this.document.getElementById('mobileDrawButton'),
@@ -168,9 +175,10 @@ export class PubgMortarApp {
     createMap() {
         this.map = L.map(this.elements.mapContainer, {
             crs: L.CRS.Simple,
-            minZoom: 0,
+            minZoom: -4,
             maxZoom: 4,
             zoom: 1,
+            zoomSnap: 0.1,
             center: [1000, 1000],
             preferCanvas: true,
             attributionControl: false
@@ -186,22 +194,40 @@ export class PubgMortarApp {
     }
 
     populateMapSelector() {
-        const fragment = this.document.createDocumentFragment();
-
-        getAvailableMaps().forEach((mapConfig) => {
-            const option = this.document.createElement('option');
-            option.value = mapConfig.id;
-            option.textContent = `${mapConfig.label} (${mapConfig.sizeLabel})`;
-            fragment.appendChild(option);
-        });
+        const createOptions = () => {
+            const fragment = this.document.createDocumentFragment();
+            getAvailableMaps().forEach((mapConfig) => {
+                const option = this.document.createElement('option');
+                option.value = mapConfig.id;
+                option.textContent = `${mapConfig.label} (${mapConfig.sizeLabel})`;
+                fragment.appendChild(option);
+            });
+            return fragment;
+        };
 
         this.elements.mapSelect.innerHTML = '';
-        this.elements.mapSelect.appendChild(fragment);
+        this.elements.mapSelect.appendChild(createOptions());
+        
+        if (this.elements.topbarMapSelect) {
+            this.elements.topbarMapSelect.innerHTML = '';
+            this.elements.topbarMapSelect.appendChild(createOptions());
+        }
     }
 
     bindInterfaceEvents() {
         this.elements.mapSelect.addEventListener('change', () => this.loadMap(this.elements.mapSelect.value));
+        if (this.elements.topbarMapSelect) {
+            this.elements.topbarMapSelect.addEventListener('change', () => this.loadMap(this.elements.topbarMapSelect.value));
+        }
+        
         this.elements.interactionModeToggle.addEventListener('change', () => this.setMortarMode(this.elements.interactionModeToggle.checked));
+        this.elements.elevationInput.addEventListener('input', () => {
+            if (this.isMortarMode && this.measurementPoints.length === 2) {
+                const distanceMeters = this.calculateMeasurementDistance();
+                this.renderMortarLine(distanceMeters);
+                this.updateHud(distanceMeters);
+            }
+        });
         this.elements.themeToggle.addEventListener('change', () => {
             const theme = toggleTheme(this.elements.themeToggle.checked, {
                 root: this.elements.root,
@@ -223,6 +249,11 @@ export class PubgMortarApp {
         this.elements.exportMapButton.addEventListener('click', () => this.exportCurrentView());
         this.elements.resetMeasurementButton.addEventListener('click', () => this.resetMeasurement());
         this.elements.clearMeasurementButton.addEventListener('click', () => this.clearMeasurement({ includeFit: false }));
+        
+        if (this.elements.topbarClearButton) {
+            this.elements.topbarClearButton.addEventListener('click', () => this.clearMeasurement({ includeFit: false }));
+        }
+
         this.elements.showHelpButton.addEventListener('click', () => this.toggleHelpModal(true));
         this.elements.mobileMenuButton.addEventListener('click', () => this.togglePanelSection('map'));
         this.elements.mobileHudButton.addEventListener('click', () => this.togglePanelSection('fire'));
@@ -601,12 +632,20 @@ export class PubgMortarApp {
 
         this.currentMapId = mapConfig.id;
         this.elements.mapSelect.value = mapConfig.id;
+        if (this.elements.topbarMapSelect) {
+            this.elements.topbarMapSelect.value = mapConfig.id;
+        }
         localStorage.setItem(MAP_STORAGE_KEY, mapConfig.id);
         this.clearMeasurement({ includeFit: false, silent: true });
         this.drawingManager?.clear();
         this.map.setMaxBounds(mapConfig.bounds);
-        this.map.fitBounds(mapConfig.bounds, { padding: [20, 20] });
         this.scheduleMapResize();
+        
+        // Defer fitBounds to ensure container size is resolved
+        this.window.requestAnimationFrame(() => {
+            this.map.fitBounds(mapConfig.bounds, { padding: [10, 10] });
+        });
+
         this.syncUrlState();
 
         if (!silent) {
@@ -714,9 +753,14 @@ export class PubgMortarApp {
     renderMortarLine(distanceMeters) {
         this.removeMeasurementLine();
 
-        const validShot = isMortarDistanceValid(distanceMeters);
-        const angle = getMortarAngle(distanceMeters);
-        const flightTime = getFlightTimeSeconds(distanceMeters).toFixed(1);
+        const elevation = parseFloat(this.elements.elevationInput.value) || 0;
+        const elevatedDistance = getElevatedDistance(distanceMeters, elevation);
+
+        const validShot = elevatedDistance !== null && isMortarDistanceValid(elevatedDistance);
+        // Calcula ángulo y tiempo aunque esté fuera de rango, para dar feedback visual al usuario.
+        const displayDistance = elevatedDistance !== null ? elevatedDistance : distanceMeters;
+        const angle = getMortarAngle(displayDistance);
+        const flightTime = getFlightTimeSeconds(displayDistance).toFixed(1);
 
         this.measurementLine = L.polyline(this.measurementPoints.map((point) => [point.lat, point.lng]), {
             color: validShot ? '#00c853' : '#ff922b',
@@ -726,7 +770,9 @@ export class PubgMortarApp {
         }).addTo(this.map);
 
         this.measurementLine.bindPopup(
-            `<strong>Distancia:</strong> ${distanceMeters} m<br>` +
+            `<strong>Distancia Real:</strong> ${distanceMeters} m<br>` +
+            (elevation ? `<strong>Elevación:</strong> ${elevation > 0 ? '+' : ''}${elevation} m<br>` : '') +
+            (elevation && validShot ? `<strong style="color:var(--accent-primary)">Dist. Mortero:</strong> <span style="color:var(--accent-primary)">${Math.round(elevatedDistance)} m</span><br>` : '') +
             `<strong>Ángulo:</strong> ${angle ? `${angle}°` : '--'}<br>` +
             `<strong>Tiempo:</strong> ${flightTime} s<br>` +
             `<strong>Estado:</strong> ${validShot ? 'Dentro de alcance' : 'Fuera de alcance'}`
@@ -765,6 +811,7 @@ export class PubgMortarApp {
         this.isMortarMode = isEnabled;
         this.elements.interactionModeToggle.checked = isEnabled;
         this.elements.modeLabel.textContent = isEnabled ? 'Mortero' : 'Distancia';
+        this.elements.elevationControlGroup.hidden = !isEnabled;
         this.clearMeasurement({ includeFit: false, silent: true });
         this.syncUrlState();
 
@@ -812,15 +859,29 @@ export class PubgMortarApp {
 
     updateHud(distanceMeters = this.calculateMeasurementDistance()) {
         const shouldShowMortarData = this.isMortarMode && distanceMeters > 0;
-        const angle = shouldShowMortarData ? getMortarAngle(distanceMeters) : null;
-        const flightTime = shouldShowMortarData ? `${getFlightTimeSeconds(distanceMeters).toFixed(1)} s` : '-- s';
+        const elevation = parseFloat(this.elements.elevationInput.value) || 0;
+        const elevatedDist = shouldShowMortarData ? getElevatedDistance(distanceMeters, elevation) : distanceMeters;
+        const validShot = elevatedDist !== null && isMortarDistanceValid(elevatedDist);
+
+        // Calcula ángulo y tiempo visual aunque esté fuera de rango.
+        const displayDist = elevatedDist !== null ? elevatedDist : distanceMeters;
+        const angle = shouldShowMortarData ? getMortarAngle(displayDist) : null;
+        const flightTime = shouldShowMortarData ? `${getFlightTimeSeconds(displayDist).toFixed(1)} s` : '-- s';
         const rangeStatus = !distanceMeters
             ? 'Esperando'
             : this.isMortarMode
-                ? (isMortarDistanceValid(distanceMeters) ? 'Dentro de alcance' : 'Fuera de alcance')
+                ? (validShot ? 'Dentro de alcance' : 'Fuera de alcance')
                 : 'Medición lista';
 
         this.elements.distanceValue.textContent = `${String(distanceMeters || 0).padStart(4, '0')} m`;
+        
+        if (shouldShowMortarData && elevation) {
+            this.elements.elevatedDistanceContainer.hidden = false;
+            this.elements.elevatedDistanceValue.textContent = elevatedDist !== null ? `${Math.round(elevatedDist)} m` : 'N/A';
+        } else {
+            this.elements.elevatedDistanceContainer.hidden = true;
+        }
+
         this.elements.angleValue.textContent = angle ? `${angle}°` : '--°';
         this.elements.flightTimeValue.textContent = flightTime;
         this.elements.shellRadiusValue.textContent = `${MORTAR_CONFIG.shellRadiusMeters} m`;
@@ -989,4 +1050,6 @@ export class PubgMortarApp {
 
     showStatus(message, tone = 'info') {
         this.elements.statusMessage.textContent = message;
-        this.elements.statusMessage.className = `statu
+        this.elements.statusMessage.className = `status-bar status-bar--${tone}`;
+    }
+}
